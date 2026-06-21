@@ -38,10 +38,13 @@ ___
 
 ## Instrument Builder
 
+<img width="1476" height="934" alt="Screenshot 2026-06-21 at 16 02 58" src="https://github.com/user-attachments/assets/e78ce112-2783-4123-b72f-1451d2fcf2e3" />
+
 Build Polyend Tracker Mini instruments from audio samples and export as `.pti` files.
 
 
 **Sample import:**
+<img width="726" height="427" alt="Screenshot 2026-06-21 at 16 00 47" src="https://github.com/user-attachments/assets/d8b883e1-beee-484b-91b4-7ed16d38327f" />
 
 
 - Start with Batch import to load your sample set, or Add to bin to add files without auto assignment
