@@ -4,6 +4,8 @@ Desktop tool suite for KB1 MIDI controller. Combines firmware management with an
 ___
 
 ## Firmware Update
+<img width="1367" height="806" alt="Screenshot 2026-06-21 at 10 37 00" src="https://github.com/user-attachments/assets/d392bb5b-d71c-43e9-8f63-6c1a9411837e" />
+
 
 Flash KB1 firmware via USB. Battery calibration data is automatically preserved across updates.
 
@@ -11,10 +13,10 @@ Flash KB1 firmware via USB. Battery calibration data is automatically preserved 
 
 **Usage:**
 
-1. Connect KB1 via USB-C.
-2. Select a firmware release from the list, or drag and drop a local `.bin` file.
-3. Grant USB permission when the browser prompts.
-4. Wait for the flash to complete. The device restarts automatically.
+- Connect KB1 via USB-C.
+- Select a firmware release from the list, or drag and drop a local `.bin` file.
+- Grant USB permission when the browser prompts.
+- Wait for the flash to complete. The device restarts automatically.
 
 **What happens during flash:**
 
@@ -38,25 +40,27 @@ ___
 
 Build Polyend Tracker Mini instruments from audio samples and export as `.pti` files.
 
-**Workflow:**
-
-1. Click **New Project** — a save dialog opens immediately. Name and save your `.kb1i` project file.
-2. Drop audio files into the file bin (WAV, AIFF, FLAC, MP3).
-3. Samples are mapped to the 48-key piano roll automatically. Root note is detected from filename or SFZ metadata.
-4. Adjust assignments by dragging files from the bin onto piano roll keys.
-5. Use the waveform editor to trim start/end points and set slice markers for each slot.
-6. Click **Export PTI** to download the instrument file ready for Tracker Mini.
 
 **Sample import:**
 
-- Drop a folder of audio files for automatic root note detection via filename parsing (e.g. `Piano_C4.wav`, `strings_A3_f.wav`).
-- Drop a `.sfz` file alongside audio files to use SFZ region mappings instead of filename heuristics.
-- Velocity layers (f/mf/mp/p, hard/soft, etc.) are detected. One layer per note is selected for the default slot map; others are available for manual override.
-- Release trigger samples (RT, release) are excluded from the default map.
+
+- Start with Batch import to load your sample set, or Add to bin to add files without auto assignment
+
+- Use the adjustment strip under the piano roll to shift your full assignment layout by semitone or octave while preserving note spacing
+
+- Scroll to zoom, Shift+scroll to pan in both the piano roll and waveform editor
+
+- Use Slot duration to set playback length; keep the lock on for a consistent instrument, unlock for per-slot timing
+
+- Use Normalize when your source files have low or uneven loudness
+
 
 **Project files:**
 
-- Projects save as `.kb1i` (JSON). Save with **Ctrl/Cmd+S**, or use **File → Save As** to rename.
+- Save your project as .kb1i while working, then export .pti when ready
+
+
+
 - The session is also persisted in browser storage so work-in-progress survives a page reload.
 - Re-opening a `.kb1i` file restores all sample assignments. Audio files are re-linked by name match — if the browser can't find a file, it will prompt you to re-select it.
 
