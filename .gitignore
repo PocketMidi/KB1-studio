@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+yarn.lock
+pnpm-lock.yaml
+# Keep package-lock.json for GitHub Actions
+
+# Build output
+dist
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

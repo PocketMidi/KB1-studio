@@ -1,0 +1,35 @@
+{
+    "name": "KB1 Studio",
+    "short_name": "KB1 Studio",
+    "description": "KB1 instrument builder — create and edit .kb1i instruments",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f0f0f",
+    "theme_color": "#1a1a1a",
+    "icons": [
+        {
+            "src": "/pm_fav.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "file_handlers": [
+        {
+            "action": "/",
+            "accept": {
+                "application/json": [
+                    ".kb1i"
+                ]
+            },
+            "icons": [
+                {
+                    "src": "/pm_fav.svg",
+                    "sizes": "any",
+                    "type": "image/svg+xml"
+                }
+            ],
+            "launch_type": "single-client"
+        }
+    ]
+}

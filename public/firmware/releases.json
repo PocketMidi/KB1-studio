@@ -1,0 +1,149 @@
+[
+  {
+    "version": "2.1.0",
+    "name": "Version 2.1.0",
+    "date": "2026-06-13",
+    "filename": "KB1-firmware-v2.1.0.bin",
+    "size": 1100496
+  },
+  {
+    "version": "2.0.1",
+    "name": "Version 2.0.1",
+    "date": "2026-05-20",
+    "filename": "KB1-firmware-v2.0.1.bin",
+    "size": 1098944
+  },
+  {
+    "version": "2.0.0",
+    "name": "Version 2.0.0",
+    "date": "2026-05-17",
+    "filename": "KB1-firmware-v2.0.0.bin",
+    "size": 1098912
+  },
+  {
+    "version": "1.7.2",
+    "name": "Version 1.7.2",
+    "date": "2026-05-01",
+    "filename": "KB1-firmware-v1.7.2.bin",
+    "size": 1094480
+  },
+  {
+    "version": "1.7.1",
+    "name": "Version 1.7.1",
+    "date": "2026-04-20",
+    "filename": "KB1-firmware-v1.7.1.bin",
+    "size": 1094016
+  },
+  {
+    "version": "1.7.0",
+    "name": "Version 1.7.0",
+    "date": "2026-04-12",
+    "filename": "KB1-firmware-v1.7.0.bin",
+    "size": 1091088
+  },
+  {
+    "version": "1.6.2",
+    "name": "Version 1.6.2",
+    "date": "2026-04-11",
+    "filename": "KB1-firmware-v1.6.2.bin",
+    "size": 1088656
+  },
+  {
+    "version": "1.6.1",
+    "name": "Version 1.6.1",
+    "date": "2026-04-09",
+    "filename": "KB1-firmware-v1.6.1.bin",
+    "size": 1088160
+  },
+  {
+    "version": "1.6.0",
+    "name": "Version 1.6.0",
+    "date": "2026-04-05",
+    "filename": "KB1-firmware-v1.6.0.bin",
+    "size": 1090208
+  },
+  {
+    "version": "v1.5.0",
+    "name": "Version 1.5.0",
+    "date": "2026-03-31",
+    "filename": "KB1-firmware-v1.5.0.bin",
+    "size": 1087968
+  },
+  {
+    "version": "1.4.1",
+    "name": "Version 1.4.1",
+    "date": "2026-03-22",
+    "filename": "KB1-firmware-v1.4.1.bin",
+    "size": 1087168
+  },
+  {
+    "version": "1.4.0",
+    "name": "Version 1.4.0",
+    "date": "2026-03-21",
+    "filename": "KB1-firmware-v1.4.0.bin",
+    "size": 1086864
+  },
+  {
+    "version": "1.3.0",
+    "name": "Version 1.3.0",
+    "date": "2026-03-17",
+    "filename": "KB1-firmware-v1.3.0.bin",
+    "size": 1078192
+  },
+  {
+    "version": "1.2.6",
+    "name": "Version 1.2.6",
+    "date": "2026-03-11",
+    "filename": "KB1-firmware-v1.2.6.bin",
+    "size": 1076960
+  },
+  {
+    "version": "1.2.5",
+    "name": "Version 1.2.5",
+    "date": "2026-03-08",
+    "filename": "KB1-firmware-v1.2.5.bin",
+    "size": 1072256
+  },
+  {
+    "version": "v1.2.0",
+    "name": "Firmware v1.2.0",
+    "date": "2026-03-03",
+    "filename": "KB1-firmware-v1.2.0.bin",
+    "size": 1068480
+  },
+  {
+    "version": "v1.1.4",
+    "name": "Firmware v1.1.4",
+    "date": "2026-03-01",
+    "filename": "KB1-firmware-v1.1.4.bin",
+    "size": 1067808
+  },
+  {
+    "version": "v1.1.3",
+    "name": "Firmware v1.1.3",
+    "date": "2026-03-01",
+    "filename": "KB1-firmware-v1.1.3.bin",
+    "size": 1067792
+  },
+  {
+    "version": "v1.1.2",
+    "name": "KB1 v1.1.2",
+    "date": "2026-02-26",
+    "filename": "KB1-firmware-v1.1.2.bin",
+    "size": 1067856
+  },
+  {
+    "version": "v1.1.1",
+    "name": "KB1 v1.1.1 - First Feature-Complete Release",
+    "date": "2026-02-21",
+    "filename": "KB1-firmware-v1.1.1.bin",
+    "size": 1066896
+  },
+  {
+    "version": "v1.0.0",
+    "name": "V1.0.0",
+    "date": "2026-01-05",
+    "filename": "KB1_v1.0.0.bin",
+    "size": 8388608
+  }
+]

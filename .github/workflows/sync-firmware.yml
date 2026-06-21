@@ -1,0 +1,124 @@
+name: Sync Firmware Release
+
+# Triggered automatically when the KB1 firmware repo dispatches a
+# "firmware-released" event (via notify-flash-tool.yml), or manually
+# via workflow_dispatch for backfills / re-syncs.
+#
+# Downloads the .bin asset from the KB1 release, adds it to
+# public/firmware/, updates releases.json, then commits & pushes.
+# The existing deploy.yml then rebuilds and re-deploys GitHub Pages.
+
+on:
+  workflow_dispatch:  # disabled - firmware bins are now added manually
+  # repository_dispatch:
+  #   types: [firmware-released]
+    inputs:
+      tag:
+        description: 'Release tag to sync (e.g. v1.5.1)'
+        required: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout KB1-flash
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "tag=${{ github.event.client_payload.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download firmware binary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          mkdir -p public/firmware
+
+          # Find the .bin asset name (exclude bootloader variants)
+          FILENAME=$(curl -sf \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/PocketMidi/KB1/releases/tags/$TAG" \
+            | jq -r '
+                .assets[]
+                | select(.name | endswith(".bin"))
+                | select(.name | contains("bootloader") | not)
+                | .name
+              ' | head -1)
+
+          if [ -z "$FILENAME" ]; then
+            echo "No .bin asset found for tag $TAG"
+            exit 1
+          fi
+
+          DOWNLOAD_URL=$(curl -sf \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/PocketMidi/KB1/releases/tags/$TAG" \
+            | jq -r --arg fn "$FILENAME" '.assets[] | select(.name == $fn) | .browser_download_url')
+
+          echo "Downloading $FILENAME from $TAG ..."
+          curl -fL -o "public/firmware/$FILENAME" "$DOWNLOAD_URL"
+
+          echo "FILENAME=$FILENAME" >> "$GITHUB_ENV"
+          echo "TAG=$TAG"           >> "$GITHUB_ENV"
+
+      - name: Update releases.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_INFO=$(curl -sf \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/PocketMidi/KB1/releases/tags/$TAG")
+
+          NAME=$(echo "$RELEASE_INFO" | jq -r '.name // .tag_name')
+          DATE=$(echo "$RELEASE_INFO" | jq -r '.published_at | split("T")[0]')
+          SIZE=$(wc -c < "public/firmware/$FILENAME" | tr -d ' ')
+
+          NEW_ENTRY=$(jq -n \
+            --arg version  "$TAG" \
+            --arg name     "$NAME" \
+            --arg date     "$DATE" \
+            --arg filename "$FILENAME" \
+            --argjson size "$SIZE" \
+            '{"version":$version,"name":$name,"date":$date,"filename":$filename,"size":$size}')
+
+          # Prepend new entry; remove any existing entry with same version
+          jq --argjson entry "$NEW_ENTRY" \
+             '[.[] | select(.version != $entry.version)] | [$entry] + .' \
+             public/firmware/releases.json > /tmp/releases_new.json
+
+          mv /tmp/releases_new.json public/firmware/releases.json
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/firmware/
+          git commit -m "chore: add firmware ${{ steps.tag.outputs.tag }}"
+          git push
+
+      - name: Trigger GitHub Pages deploy
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              ref: 'main'
+            });
+            console.log('Triggered deploy.yml');

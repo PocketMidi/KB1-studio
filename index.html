@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KB1 Studio</title>
+    <link rel="icon" type="image/svg+xml" href="/pm_fav.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400&family=Roboto+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+    <!-- Browser Compatibility Warning -->
+    <div id="browser-warning" class="warning hidden">
+        <strong>Browser Not Supported</strong>
+        <p>This tool requires Chrome, Edge, or Opera on desktop.</p>
+        <p>Web Serial API is not available in this browser.</p>
+    </div>
+
+    <!-- Mobile Warning -->
+    <div class="mobile-warning">
+        <strong>Desktop Only</strong>
+        <p>KB1 Studio requires a desktop browser (Chrome, Edge, or Opera) for USB and audio file access.</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar" id="main-sidebar">
+            <!-- Logo -->
+            <div class="logo-container">
+                <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 132">
+                    <defs>
+                        <style>
+                            .logo-text,
+                            .logo-path {
+                                fill: var(--logo-color, #df8917);
+                            }
+
+                            .logo-text {
+                                isolation: isolate;
+                                font-family: Avenir-Medium, Avenir;
+                                font-size: 20.72px;
+                                font-weight: 500;
+                            }
+                        </style>
+                    </defs>
+                    <path class="logo-path"
+                        d="M32.39,97.91v-52.87c0-8.26,6.46-15.24,14.71-15.49,8.58-.25,15.63,6.65,15.63,15.16v8.24c0,2.36,1.78,4.42,4.13,4.58,2.58.18,4.74-1.87,4.74-4.42,0-6.98,5.81-12.62,12.85-12.36s11.89,5.96,11.89,12.66v8.1c0,2.45,1.98,4.43,4.43,4.43h11.25c2.18,0,4.06,1.67,4.14,3.85s-1.74,4.09-3.97,4.09h-11.42c-6.83,0-12.37-5.54-12.37-12.37v-8.24c0-2.36-1.78-4.42-4.13-4.58-2.58-.18-4.74,1.87-4.74,4.42,0,6.98-5.81,12.62-12.85,12.36s-11.89-5.97-11.89-12.66v-7.89c0-3.89-2.98-7.24-6.86-7.43-4.15-.21-7.59,3.11-7.59,7.22v53.19c0,2.19-1.78,3.97-3.97,3.97h0c-2.19,0-3.97-1.78-3.97-3.97h-.02Z" />
+                    <path class="logo-path"
+                        d="M43.7,45.29c0-2.26,1.84-4.11,4.11-4.11s4.11,1.84,4.11,4.11-1.84,4.11-4.11,4.11-4.11-1.84-4.11-4.11Z" />
+                    <text class="logo-text" transform="translate(44.99 94.57)">
+                        <tspan x="0" y="0">pocket midi</tspan>
+                    </text>
+                </svg>
+            </div>
+
+            <!-- Flash Tools Sidebar -->
+            <div class="sidebar-content" id="flash-sidebar-content">
+                <nav class="flash-sidebar-nav">
+                    <button class="flash-sidebar-btn active" data-section="update">
+                        <span class="sidebar-icon">⬢</span>
+                        <span>Flash</span>
+                    </button>
+                    <button class="flash-sidebar-btn" data-section="info">
+                        <span class="sidebar-icon">ⓘ</span>
+                        <span>Device Info</span>
+                    </button>
+                    <button class="flash-sidebar-btn" data-section="serial">
+                        <span class="sidebar-icon">▤</span>
+                        <span>Serial Monitor</span>
+                    </button>
+                    <hr class="file-menu-sep" />
+                    <button class="flash-sidebar-btn" id="flash-guide-btn" data-modal="flash">
+                        <span class="sidebar-icon sidebar-info-icon">i</span>
+                        <span>Guide</span>
+                    </button>
+                    <button class="flash-sidebar-btn" id="flash-about-btn">
+                        <span class="sidebar-icon">?</span>
+                        <span>About</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Instrument Builder Sidebar -->
+            <div class="sidebar-content hidden" id="instrument-sidebar-content">
+                <!-- Instrument Name -->
+                <div class="instrument-name-field">
+                    <input type="text" id="instrument-name" class="instrument-name-input" placeholder="Untitled"
+                        value="Untitled" />
+                </div>
+
+                <!-- File Commands -->
+                <nav class="file-menu">
+                    <button class="file-menu-btn" id="new-instrument-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="12" y1="18" x2="12" y2="12" />
+                                <line x1="9" y1="15" x2="15" y2="15" />
+                            </svg></span>
+                        New Project
+                    </button>
+                    <button class="file-menu-btn" id="load-instrument-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2z" />
+                                <line x1="9" y1="16" x2="16" y2="9" />
+                                <polyline points="11 9 16 9 16 14" />
+                            </svg></span>
+                        Open Project
+                    </button>
+                    <input type="file" id="load-instrument-input" accept=".kb1i" style="display:none" />
+                    <hr class="file-menu-sep" />
+                    <button class="file-menu-btn" id="save-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                            </svg></span>
+                        Save Project
+                    </button>
+                    <button class="file-menu-btn" id="save-as-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                                <line x1="20" y1="16" x2="20" y2="26" stroke-width="3" />
+                                <line x1="16" y1="20" x2="26" y2="20" stroke-width="3" />
+                            </svg></span>
+                        Save As…
+                    </button>
+                    <hr class="file-menu-sep" />
+                    <button class="file-menu-btn" id="import-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="15" y1="11" x2="9" y2="17" />
+                                <polyline points="9 13 9 17 13 17" />
+                            </svg></span>
+                        Batch import
+                    </button>
+                    <button class="file-menu-btn" id="import-bin-only-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="12" y1="12" x2="12" y2="18" />
+                                <polyline points="9 15 12 18 15 15" />
+                            </svg></span>
+                        Add to bin
+                    </button>
+                    <input type="file" id="import-bin-only-input" multiple accept="audio/*" style="display:none" />
+                    <button class="file-menu-btn" id="export-btn">
+                        <span class="file-menu-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="9" y1="17" x2="15" y2="11" />
+                                <polyline points="11 11 15 11 15 15" />
+                            </svg></span>
+                        Export .pti
+                    </button>
+                    <hr class="file-menu-sep" />
+                    <button class="flash-sidebar-btn" id="instrument-guide-btn" data-modal="instrument-guide">
+                        <span class="sidebar-icon sidebar-info-icon">i</span>
+                        <span>Guide</span>
+                    </button>
+                    <button class="flash-sidebar-btn" id="instrument-about-btn">
+                        <span class="sidebar-icon">?</span>
+                        <span>About</span>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Right Content Area -->
+        <div class="main-content">
+            <!-- Top Navigation Bar -->
+            <header class="top-nav">
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="flash">Flash Tools</button>
+                    <button class="nav-tab" data-tab="instrument">Instrument Builder</button>
+                </nav>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                <!-- FLASH TOOLS TAB -->
+                <div class="tab-content active" id="tab-flash">
+                    <!-- Persistent connect header -->
+                    <div class="flash-tab-header">
+                        <div class="flash-header-left">
+                            <span id="version-number">v2.1.0</span>
+                            <h2 id="flash-section-title">Firmware Update</h2>
+                        </div>
+                        <div class="flash-header-right">
+                            <button id="connect-btn" class="btn-connect">
+                                <span class="btn-connect-icon">●</span>
+                                <div class="btn-spinner"></div>
+                                <span class="btn-connect-label">CONNECT</span>
+                            </button>
+                            <button id="disconnect-btn" class="btn-disconnect hidden">
+                                <span class="btn-icon">⏏</span>
+                                <span>DISCONNECT</span>
+                            </button>
+                            <div class="flash-connection-status disconnected" id="connection-status">
+                                <div class="status-indicator"></div>
+                                <span id="status-message">Not Connected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flash sub-sections -->
+                    <div class="flash-content-area">
+
+                        <!-- Firmware Update -->
+                        <div class="flash-section active" id="flash-section-update">
+                            <div id="flash-progress" class="card compact">
+                                <div class="header-with-subtitle">
+                                    <h3>Update progress</h3>
+                                    <p id="progress-message" class="progress-subtitle">Select a firmware version or
+                                        upload a
+                                        .bin file to begin</p>
+                                </div>
+                                <div class="progress-steps">
+                                    <div class="step" data-step="checking-usb">
+                                        <div class="step-icon">1</div>
+                                        <div class="step-label">Connect</div>
+                                        <div class="step-progress">
+                                            <div class="step-progress-fill"></div>
+                                        </div>
+                                    </div>
+                                    <div class="step" data-step="backing-up-nvs">
+                                        <div class="step-icon">2</div>
+                                        <div class="step-label">Backup NVS</div>
+                                        <div class="step-progress">
+                                            <div class="step-progress-fill"></div>
+                                        </div>
+                                    </div>
+                                    <div class="step" data-step="flashing-firmware">
+                                        <div class="step-icon">3</div>
+                                        <div class="step-label">Flash</div>
+                                        <div class="step-progress">
+                                            <div class="step-progress-fill"></div>
+                                        </div>
+                                    </div>
+                                    <div class="step" data-step="restoring-nvs">
+                                        <div class="step-icon">4</div>
+                                        <div class="step-label">Restore NVS</div>
+                                        <div class="step-progress">
+                                            <div class="step-progress-fill"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="overall-progress">
+                                    <div class="progress-bar">
+                                        <div id="progress-fill" class="progress-fill"></div>
+                                        <span id="progress-percent" class="progress-percent-overlay">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flash-grid">
+                                <div class="flash-col-main">
+                                    <div class="card compact">
+                                        <h3>Flash latest release from GitHub</h3>
+                                        <div id="releases-loading" class="spinner-container">
+                                            <div class="spinner"></div>
+                                            <span>Loading releases…</span>
+                                        </div>
+                                        <div id="releases-list" class="releases-scroll-container" style="display:none">
+                                        </div>
+                                        <button id="flash-github-btn" class="btn btn-primary btn-disabled"
+                                            style="margin-top:8px;width:100%;display:none"
+                                            data-disabled-reason="Please connect your KB1 device first">Flash Selected
+                                            Version</button>
+                                        <div class="clear-data-toggle">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" id="clear-data-toggle" />
+                                                <span class="toggle-text">Clear device data on update</span>
+                                            </label>
+                                            <p id="clear-data-warning" class="clear-data-warning hidden">⚠ All presets,
+                                                calibration, and settings will be erased. This cannot be undone.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flash-col-side">
+                                    <div class="card compact">
+                                        <h3>Flash from custom firmware file</h3>
+                                        <div class="file-upload-area">
+                                            <input type="file" id="file-input" accept=".bin" />
+                                            <label for="file-input" id="file-drop-zone" class="file-drop-zone">
+                                                <span class="upload-icon">📁</span>
+                                                <span id="file-name">Drop .bin file or click to browse</span>
+                                            </label>
+                                        </div>
+                                        <button id="flash-local-btn" class="btn btn-primary btn-disabled"
+                                            style="margin-top:8px;width:100%;display:none"
+                                            data-disabled-reason="Please connect your KB1 device first">Flash Custom
+                                            Firmware</button>
+                                    </div>
+                                    <div class="card compact">
+                                        <h3>Clear device data</h3>
+                                        <p class="card-description">Remove all saved presets, calibration data, and
+                                            settings
+                                            from the device. Connect via USB first.</p>
+                                        <button id="clear-device-data-btn" class="btn btn-danger">Clear Device
+                                            Data</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="flash-complete" class="card success-card hidden compact">
+                                <h3>Update complete</h3>
+                                <p id="flash-complete-message">KB1 updated successfully! Battery calibration preserved.
+                                </p>
+                                <button id="reset-btn" class="btn btn-secondary">Flash Another Device</button>
+                            </div>
+                            <div id="flash-error" class="card error-card hidden compact">
+                                <h3>Update failed</h3>
+                                <p id="error-message"></p>
+                                <button id="retry-btn" class="btn btn-secondary">Try Again</button>
+                            </div>
+                        </div>
+
+                        <!-- Device Info -->
+                        <div class="flash-section" id="flash-section-info">
+                            <div class="card">
+                                <h3 style="margin-bottom: 12px;">Device Information</h3>
+                                <div class="info-grid" id="device-info">
+                                    <div class="info-item"><span class="info-label">Device:</span><span
+                                            class="info-value" id="device-name">-</span></div>
+                                    <div class="info-item"><span class="info-label">Chip:</span><span class="info-value"
+                                            id="device-chip-type">-</span></div>
+                                    <div class="info-item"><span class="info-label">MAC address:</span><span
+                                            class="info-value" id="device-mac">-</span></div>
+                                    <div class="info-item"><span class="info-label">Flash size:</span><span
+                                            class="info-value" id="device-flash-size">-</span></div>
+                                    <div class="info-item"><span class="info-label">Latest available:</span><span
+                                            class="info-value" id="device-latest-firmware">-</span></div>
+                                </div>
+                                <div class="heading-with-help">
+                                    <h3>NVS inspector</h3>
+                                    <button class="help-btn" data-modal="nvs" title="What is NVS?">i</button>
+                                </div>
+                                <h4>Battery calibration data</h4>
+                                <div class="info-grid" id="nvs-data">
+                                    <div class="info-item"><span class="info-label">Battery percentage:</span><span
+                                            class="info-value" id="nvs-bat-pct">-</span></div>
+                                    <div class="info-item"><span class="info-label">BLE on time:</span><span
+                                            class="info-value" id="nvs-bat-ble-on-ms">-</span></div>
+                                    <div class="info-item"><span class="info-label">BLE off time:</span><span
+                                            class="info-value" id="nvs-bat-ble-off-ms">-</span></div>
+                                    <div class="info-item"><span class="info-label">Discharge time:</span><span
+                                            class="info-value" id="nvs-bat-disch-ms">-</span></div>
+                                    <div class="info-item"><span class="info-label">Calibration time:</span><span
+                                            class="info-value" id="nvs-bat-cal-time">-</span></div>
+                                    <div class="info-item"><span class="info-label">Is charging mode:</span><span
+                                            class="info-value" id="nvs-is-charging">-</span></div>
+                                    <div class="info-item"><span class="info-label">USB at boot:</span><span
+                                            class="info-value" id="nvs-usb-boot">-</span></div>
+                                    <div class="info-item"><span class="info-label">NVS size:</span><span
+                                            class="info-value">20 KB @ 0x9000</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Serial Monitor -->
+                        <div class="flash-section" id="flash-section-serial">
+                            <div class="terminal-container">
+                                <div class="terminal-toolbar">
+                                    <div class="terminal-toolbar-left">
+                                        <span class="terminal-port-label" id="terminal-port-label">● Monitor
+                                            closed</span>
+                                    </div>
+                                    <div class="terminal-toolbar-right">
+                                        <label class="terminal-checkbox"><input type="checkbox" id="auto-scroll"
+                                                checked /><span>Auto-scroll</span></label>
+                                        <button id="serial-clear-btn" class="terminal-btn">Clear</button>
+                                        <button id="serial-disconnect-btn"
+                                            class="terminal-btn terminal-btn-danger hidden">Close Monitor</button>
+                                        <button id="serial-connect-btn" class="terminal-btn terminal-btn-primary">Open
+                                            Monitor</button>
+                                    </div>
+                                </div>
+                                <div id="serial-output" class="serial-output"><span class="serial-placeholder">Waiting
+                                        for
+                                        serial connection…</span></div>
+                            </div>
+                        </div>
+
+                    </div><!-- .flash-content-area -->
+                </div><!-- #tab-flash -->
+
+                <!-- INSTRUMENT BUILDER TAB -->
+                <div class="tab-content" id="tab-instrument">
+                    <!-- Top Segment: Piano Roll -->
+                    <section class="piano-roll-panel">
+                        <!-- Piano Roll Toolbar (Octave shift + Slot Length + Export) -->
+                        <div class="piano-roll-toolbar">
+                            <div class="toolbar-group octave-controls">
+                                <span class="toolbar-label">Octave</span>
+                                <button class="octave-btn" id="octave-down" title="Shift KB1 range down">−</button>
+                                <span class="octave-display" id="octave-display">0</span>
+                                <button class="octave-btn" id="octave-up" title="Shift KB1 range up">+</button>
+                            </div>
+                            <div class="toolbar-group normalize-controls">
+                                <button class="export-toggle-btn" id="file-bin-normalize-all"
+                                    title="Normalize all files to -18 dBFS RMS">Normalize</button>
+                            </div>
+                            <div class="toolbar-group length-controls">
+                                <span class="toolbar-label">Slot duration</span>
+                                <button class="length-btn" id="length-down" title="Decrease slot length">−</button>
+                                <span class="length-display" id="length-display">2.00s</span>
+                                <button class="length-btn" id="length-up" title="Increase slot length">+</button>
+                                <button class="toolbar-lock-btn is-locked" id="duration-lock-btn"
+                                    title="Locked: all slots share one duration. Click to unlock." aria-pressed="true">
+                                    <svg class="lock-svg locked-icon" viewBox="0 0 18 21"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M11.9731 14.6856L12.0327 16.5832C12.0813 18.1871 10.8112 19.5418 9.20727 19.5904L8.34945 19.622C6.74549 19.6706 5.39084 18.4005 5.34223 16.7965L5.17075 11.5794C5.12214 9.97544 6.39223 8.62079 7.9962 8.57219L8.85401 8.54058"
+                                            stroke="currentColor" stroke-width="2.17628" stroke-miterlimit="10"
+                                            stroke-linecap="round" fill="none" />
+                                        <path
+                                            d="M5.29236 6.3122L5.22519 4.20593C5.17658 2.60197 6.44667 1.24732 8.05064 1.19871L8.90845 1.16711C10.5124 1.1185 11.8671 2.38859 11.9157 3.99256L12.0872 9.20968C12.1358 10.8136 10.8657 12.1683 9.26171 12.2169L8.40389 12.2485"
+                                            stroke="currentColor" stroke-width="2.17628" stroke-miterlimit="10"
+                                            stroke-linecap="round" fill="none" />
+                                        <path d="M12.0245 14.6878L12.0056 15.3553" stroke="currentColor"
+                                            stroke-width="2.17628" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M9.17352 12.2321L8.40316 12.2655" stroke="currentColor"
+                                            stroke-width="1.45085" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M5.25157 4.85896L5.29071 6.48059" stroke="currentColor"
+                                            stroke-width="1.45085" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M7.65854 8.60923L7.65845 8.60927" stroke="currentColor"
+                                            stroke-width="1.45085" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                    </svg>
+                                    <svg class="lock-svg unlocked-icon" viewBox="0 0 25 26"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M13.3779 18.5022L13.6983 20.2576C13.9675 21.7416 12.9762 23.178 11.4922 23.4472L10.6993 23.5964C9.21525 23.8656 7.77879 22.8743 7.50961 21.3902L6.62163 16.5651C6.35245 15.0811 7.34376 13.6446 8.82778 13.3755L9.62067 13.2263"
+                                            stroke="currentColor" stroke-width="2.04545" stroke-miterlimit="10"
+                                            stroke-linecap="round" fill="none" />
+                                        <path
+                                            d="M10.9887 7.61063L11.3128 5.65668C11.562 4.16918 12.9812 3.15322 14.4687 3.40243L15.2652 3.53054C16.7528 3.77975 17.7687 5.19889 17.5195 6.68639L16.7212 11.5272C16.472 13.0147 15.0529 14.0306 13.5654 13.7814L12.7688 13.6533"
+                                            stroke="currentColor" stroke-width="2.04545" stroke-miterlimit="10"
+                                            stroke-linecap="round" fill="none" />
+                                        <path d="M16.5613 18.4286L18.0297 21.5128" stroke="currentColor"
+                                            stroke-width="1.36364" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M18.1445 15.4094L21.547 15.1488" stroke="currentColor"
+                                            stroke-width="1.36364" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M8.09324 7.31949L6.15613 4.50376" stroke="currentColor"
+                                            stroke-width="1.36364" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                        <path d="M6.60091 10.371L3.28284 11.1578" stroke="currentColor"
+                                            stroke-width="1.36364" stroke-miterlimit="10" stroke-linecap="round"
+                                            fill="none" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-group export-controls">
+                                <label class="toolbar-toggle">
+                                    <input type="checkbox" id="export-channels" checked />
+                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    <span class="toolbar-label">Stereo</span>
+                                </label>
+                                <div class="export-size-wrap" title="Estimated .pti export file size">
+                                    <span class="pti-badge">PTI</span>
+                                    <div class="export-size-bar">
+                                        <div class="export-size-fill" id="export-size-fill"></div>
+                                    </div>
+                                    <span class="export-size-label" id="export-size-label">—</span>
+                                </div>
+                            </div>
+                            <span class="zoom-hint" id="zoom-hint">1×</span>
+                        </div>
+
+                        <!-- Scrollable Piano Roll -->
+                        <div class="piano-roll-scroll" id="piano-roll-scroll">
+                            <div class="piano-roll" id="piano-roll">
+                                <!-- Mini-waveform grid (generated by JS) -->
+                                <div class="pr-waveforms" id="pr-waveforms"></div>
+                                <!-- Piano keys (generated by JS) -->
+                                <div class="pr-keys" id="pr-keys"></div>
+                            </div>
+                            <!-- Slip strip Layer 1: note label canvas (scrolls with roll) -->
+                            <canvas class="slip-strip-canvas hidden" id="slip-strip-canvas"></canvas>
+                        </div>
+
+                        <!-- Slip strip Layer 2: shift controls (outside scroll, centered) -->
+                        <div class="slip-strip-controls hidden" id="slip-strip-controls">
+                            <div class="slip-strip-group">
+                                <button class="slip-btn" id="slip-oct-left"
+                                    title="Shift all assignments left one octave">←
+                                    Oct</button>
+                                <button class="slip-btn" id="slip-semi-left"
+                                    title="Shift all assignments left one semitone">← Semi</button>
+                                <span class="slip-range-label" id="slip-range-label">—</span>
+                                <button class="slip-btn" id="slip-semi-right"
+                                    title="Shift all assignments right one semitone">Semi →</button>
+                                <button class="slip-btn" id="slip-oct-right"
+                                    title="Shift all assignments right one octave">Oct →</button>
+                            </div>
+                        </div>
+
+                        <!-- Pinch-zoom scrub bar -->
+                        <div class="zoom-bar" id="zoom-bar">
+                            <div class="zoom-bar-track" id="zoom-bar-track">
+                                <div class="zoom-bar-thumb" id="zoom-bar-thumb">
+                                    <div class="zoom-bar-handle zoom-bar-handle-left" id="zoom-bar-left"></div>
+                                    <div class="zoom-bar-body"></div>
+                                    <div class="zoom-bar-handle zoom-bar-handle-right" id="zoom-bar-right"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Vertical resizer: piano roll ↕ editor row -->
+                    <div class="resizer resizer-v" id="resizer-v">
+                        <div class="resizer-grip"></div>
+                    </div>
+
+                    <!-- Bottom Segment: File Bin + Detailed Sample Editor -->
+                    <section class="editor-row">
+                        <!-- File Bin (imported source files) -->
+                        <aside class="file-bin" id="file-bin">
+                            <div class="file-bin-header">
+                                <span class="file-bin-title">Files</span>
+                                <div class="file-bin-header-actions">
+                                    <span class="file-bin-count" id="file-bin-count">0</span>
+                                    <button class="file-bin-clear-all" id="file-bin-clear-all" title="Clear all files"
+                                        style="display:none">Clear</button>
+                                </div>
+                            </div>
+                            <ul class="file-bin-list" id="file-bin-list">
+                                <li class="file-bin-empty">Import audio files to populate the bin</li>
+                            </ul>
+                        </aside>
+
+                        <!-- Horizontal resizer: file bin ↔ sample editor -->
+                        <div class="resizer resizer-h" id="resizer-h">
+                            <div class="resizer-grip"></div>
+                        </div>
+
+                        <!-- Detailed Sample Editor -->
+                        <section class="sample-editor-panel">
+                            <div class="sample-waveform-frame">
+                                <span class="sample-note-label" id="sample-note-label">E4</span>
+                                <canvas id="sample-waveform" class="sample-waveform-canvas"></canvas>
+                                <canvas id="trim-ruler" class="trim-ruler-canvas"></canvas>
+                                <div class="playhead" id="playhead"></div>
+                                <span class="sample-file-label" id="sample-file-label">source file name here</span>
+                            </div>
+
+                            <!-- Waveform Zoom Bar -->
+                            <div class="zoom-bar waveform-zoom-bar">
+                                <div class="zoom-bar-track" id="waveform-zoom-track">
+                                    <div class="zoom-bar-thumb" id="waveform-zoom-thumb">
+                                        <div class="zoom-bar-handle"></div>
+                                        <div class="zoom-bar-body"></div>
+                                        <div class="zoom-bar-handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transport Controls -->
+                            <div class="transport-controls">
+                                <button class="transport-btn" id="transport-prev" title="Previous note (←)">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                                    </svg>
+                                </button>
+                                <button class="transport-btn" id="transport-play" title="Play (L / Space)">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </button>
+                                <button class="transport-btn" id="transport-next" title="Next note (→)">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path d="M16 6h2v12h-2zm-9 12l8.5-6L7 6z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </section>
+                    </section><!-- .editor-row -->
+                </div>
+
+            </main>
+        </div><!-- .main-content -->
+    </div><!-- .app-container -->
+
+    <!-- Flash Tools — About Modal -->
+    <div class="about-modal-overlay hidden" id="flash-about-overlay">
+        <div class="about-modal">
+            <div class="about-modal-header">
+                <span class="about-modal-title">About Flash Tools</span>
+                <button class="about-modal-close" id="flash-about-close">×</button>
+            </div>
+            <div class="about-modal-body">
+                <p>KB1 Flash Tool is free and open source. The firmware, config app, and flash tool are all MIT licensed
+                    and available on GitHub.</p>
+                <div class="link-grid">
+                    <a href="https://github.com/PocketMidi" target="_blank"
+                        class="project-link"><span>→</span><span>GitHub Repositories</span></a>
+                    <a href="https://pocketmidi.com" target="_blank" class="project-link"><span>→</span><span>Pocket
+                            MIDI Website</span></a>
+                </div>
+                <p class="about-credit-thanks">Built on the shoulders of <a
+                        href="https://github.com/theLastOutpostWorkshop/ESPConnect" target="_blank">ESPConnect</a> by
+                    The Last Outpost Workshop — an excellent open-source ESP32 web flash tool. Thank you for making this
+                    possible.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instrument Builder — About Modal -->
+    <div class="about-modal-overlay hidden" id="instrument-about-overlay">
+        <div class="about-modal">
+            <div class="about-modal-header">
+                <span class="about-modal-title">About Instrument Builder</span>
+                <button class="about-modal-close" id="instrument-about-close">×</button>
+            </div>
+            <div class="about-modal-body">
+                <p>The Instrument Builder creates <strong>.pti</strong> instrument files for the <a
+                        href="https://polyend.com/tracker-mini/" target="_blank">Polyend Tracker Mini</a> directly in
+                    your browser — no software to install.</p>
+                <div class="about-credit-block">
+                    <p class="about-credit-label">Powered by</p>
+                    <a href="https://github.com/polyend/tracker-lib" target="_blank" class="about-credit-link">
+                        <span class="about-credit-name">tracker-lib</span>
+                        <span class="about-credit-by">by Polyend</span>
+                    </a>
+                </div>
+                <p class="about-credit-thanks">Special thanks to <strong>Sandroid</strong> and the Polyend team for
+                    open-sourcing tracker-lib and making community tools like this possible.</p>
+                <div class="link-grid">
+                    <a href="https://github.com/polyend/tracker-lib" target="_blank"
+                        class="project-link"><span>→</span><span>tracker-lib on GitHub</span></a>
+                    <a href="https://github.com/PocketMidi" target="_blank" class="project-link"><span>→</span><span>KB1
+                            Studio on GitHub</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for Import -->
+    <input type="file" id="import-file-input" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden />
+
+    <!-- Flash Tools — Help Modal -->
+    <div id="help-modal-overlay" class="help-modal-overlay hidden">
+        <div class="help-modal-box">
+            <button class="help-modal-close" id="help-modal-close">✕</button>
+            <div id="help-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Help Content Templates -->
+    <template id="flash-help-content">
+        <h3>Flashing Firmware</h3>
+        <ul>
+            <li>Connect KB1 via USB-C cable before clicking Connect</li>
+            <li>Battery calibration data is automatically backed up and restored* &mdash; steps 2 and 4 in the progress
+                tracker</li>
+            <li>Do not disconnect the device during the update process</li>
+            <li>The device will restart automatically when the update is complete</li>
+            <li>Requires Chrome, Edge, or Opera on desktop</li>
+        </ul>
+        <p style="margin-top: 10px; font-style: italic; font-size: 0.85rem; color: var(--text-secondary);">* <span
+                style="font-size: 0.9rem;">&#9745;</span> <strong style="font-style: normal;">Clear device data on
+                update</strong> will skip steps 2 &amp; 4</p>
+    </template>
+
+    <template id="device-help-content">
+        <h3>Device Information</h3>
+        <p>Shows hardware details read directly from your KB1 over USB when connected &mdash; chip type, MAC address,
+            flash size, and the latest firmware version available on GitHub.</p>
+    </template>
+
+    <template id="device-help-content">
+        <h3>Device Information</h3>
+        <p>Shows hardware details read directly from your KB1 over USB when connected &mdash; chip type, MAC address,
+            flash size, and the latest firmware version available on GitHub.</p>
+    </template>
+
+    <template id="nvs-help-content">
+        <h3>What is NVS?</h3>
+        <p>NVS (Non-Volatile Storage) is a small 20&thinsp;KB partition on the ESP32&rsquo;s flash memory, separate from
+            the firmware itself. It persists across reboots and retains its data even after a firmware update.</p>
+        <h4>What&rsquo;s stored here?</h4>
+        <p>KB1 uses NVS to store the battery calibration model &mdash; a set of values built up over real
+            charge/discharge cycles that lets the firmware accurately report battery percentage. The key fields are:</p>
+        <ul>
+            <li><strong>Battery Percentage</strong> &mdash; last known state of charge</li>
+            <li><strong>BLE On / Off Time</strong> &mdash; cumulative radio-on/off durations used in the capacity model
+            </li>
+            <li><strong>Discharge Time</strong> &mdash; total measured discharge time</li>
+            <li><strong>Calibration Time</strong> &mdash; timestamp of the last successful calibration</li>
+        </ul>
+        <h4>Why does the flash tool preserve it?</h4>
+        <p>A standard firmware flash erases the entire flash partition, which would wipe out weeks of calibration data
+            and reset the battery indicator to a rough estimate. KB1 Studio reads the NVS partition <em>before</em>
+            flashing and writes it back <em>after</em> &mdash; so your battery gauge stays accurate across every update.
+        </p>
+    </template>
+
+    <template id="instrument-guide-help-content">
+        <h3>Instrument Builder guide</h3>
+        <ul>
+            <li>Start with <strong>Batch import</strong> to load your sample set, or <strong>Add to bin</strong> to add
+                files without auto assignment</li>
+            <li>Use the <strong>adjustment strip</strong> under the piano roll to shift your full assignment layout by
+                semitone or octave while preserving note spacing</li>
+            <li>Use <strong>Slot duration</strong> to set playback length; keep the lock on for a consistent instrument,
+                unlock for per-slot timing</li>
+            <li>Use <strong>Normalize</strong> when your source files have low or uneven loudness</li>
+            <li>Save your project as <strong>.kb1i</strong> while working, then export <strong>.pti</strong> when ready
+            </li>
+            <li>Scroll to zoom, Shift+scroll to pan in both the piano roll and waveform editor</li>
+        </ul>
+    </template>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>

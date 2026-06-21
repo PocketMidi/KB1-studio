@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "node_modules": true,
+    "dist": true
+  },
+  "search.exclude": {
+    "node_modules": true,
+    "dist": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  }
+}
