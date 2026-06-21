@@ -46,7 +46,6 @@ Build Polyend Tracker Mini instruments from audio samples and export as `.pti` f
 - Start with Batch import to load your sample set, or Add to bin to add files without auto assignment
 
 
-
 <img width="1476" height="934" alt="Screenshot 2026-06-21 at 16 02 58" src="https://github.com/user-attachments/assets/e78ce112-2783-4123-b72f-1451d2fcf2e3" />
 
 - Use the adjustment strip under the piano roll to shift your full assignment layout by semitone or octave while preserving note spacing
@@ -58,15 +57,13 @@ Build Polyend Tracker Mini instruments from audio samples and export as `.pti` f
 - Use Normalize when your source files have low or uneven loudness
 
 
-
 **Project files:**
 
 - Save your project as .kb1i while working, then export .pti when ready
 
 - The session is also persisted in browser storage so work-in-progress survives a page reload.
-- 
-- Re-opening a `.kb1i` file restores all sample assignments. Audio files are re-linked by name match — if the browser can't find a file, it will prompt you to re-select it.
 
+- Re-opening a `.kb1i` file restores all sample assignments. Audio files are re-linked by name match — if the browser can't find a file, it will prompt you to re-select it.
 
 
 ## Development
