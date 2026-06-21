@@ -2613,31 +2613,54 @@ interface KB1InstrumentFile {
     trimEnd: number;
     normalized?: boolean;
     rootMidi?: number | null;
+    detectedRootMidi?: number | null;
   }>;
   assignments: [number, number][];
   autoAssigned: number[];
 }
 
 /** Build the serialisable payload (shared by save + saveAs).
- * Version 2: audio lives in IDB — only metadata is stored in the .kb1i file.
+ * Version 3: self-contained fallback format.
+ * Audio is embedded in the .kb1i so a saved project opens reliably even when
+ * browser cache/IDB has been cleared or the file is opened on another origin.
  */
 async function buildPayload(): Promise<{ payload: KB1InstrumentFile; json: string; blob: Blob }> {
   const nameEl = document.getElementById('instrument-name') as HTMLInputElement;
   const instrumentName = nameEl?.value.trim() || 'Untitled';
 
-  // v2: no audio data embedded — just names and trim points
-  const files: KB1InstrumentFile['files'] = importedFiles.map((f) => ({
-    id: f.id,
-    name: f.name,
-    trimStart: f.trimStart,
-    trimEnd: f.trimEnd,
-    normalized: f.normalized,
-    rootMidi: f.mapping.rootMidi,
-    detectedRootMidi: f.detectedRootMidi,
+  function arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  }
+
+  const files: KB1InstrumentFile['files'] = await Promise.all(importedFiles.map(async (f) => {
+    let data: string | undefined;
+    try {
+      const arrayBuffer = await f.file.arrayBuffer();
+      data = arrayBufferToBase64(arrayBuffer);
+    } catch (err) {
+      console.warn(`Failed to embed audio for ${f.name}:`, err);
+    }
+
+    return {
+      id: f.id,
+      name: f.name,
+      data,
+      trimStart: f.trimStart,
+      trimEnd: f.trimEnd,
+      normalized: f.normalized,
+      rootMidi: f.mapping.rootMidi,
+      detectedRootMidi: f.detectedRootMidi,
+    };
   }));
 
   const payload: KB1InstrumentFile = {
-    version: 2, instrumentName, slotDuration, slotDurationLocked, exportChannels, nextFileId, files,
+    version: 3, instrumentName, slotDuration, slotDurationLocked, exportChannels, nextFileId, files,
     assignments: Array.from(slotAssignments.entries()),
     autoAssigned: Array.from(autoAssigned),
   };
@@ -2787,7 +2810,7 @@ async function loadInstrumentFile(file: File) {
   try {
     const text = await file.text();
     payload = JSON.parse(text) as KB1InstrumentFile;
-    if (payload.version !== 1 && payload.version !== 2) throw new Error('Unknown format version');
+    if (payload.version !== 1 && payload.version !== 2 && payload.version !== 3) throw new Error('Unknown format version');
   } catch {
     alert('Could not read instrument file — it may be corrupted or an unsupported version.');
     return;
@@ -2850,13 +2873,21 @@ async function loadInstrumentFile(file: File) {
     if (payload.version >= 2) {
       // v2: audio was pre-fetched from IDB before clearAllFiles() ran
       const persisted = idbCache.get(pf.id);
-      if (!persisted) {
+      if (persisted) {
+        restoredFile = new File([persisted.arrayBuffer], pf.name);
+        // Re-populate IDB after the clearAllFiles() above
+        saveFile({ id: pf.id, name: pf.name, arrayBuffer: persisted.arrayBuffer }).catch(console.warn);
+      } else if (pf.data) {
+        // v3 fallback: decode from embedded audio data when cache is missing
+        const binary = atob(pf.data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        restoredFile = new File([bytes], pf.name);
+        saveFile({ id: pf.id, name: pf.name, arrayBuffer: bytes.buffer }).catch(console.warn);
+      } else {
         missingNames.push(pf.name);
         continue;
       }
-      restoredFile = new File([persisted.arrayBuffer], pf.name);
-      // Re-populate IDB after the clearAllFiles() above
-      saveFile({ id: pf.id, name: pf.name, arrayBuffer: persisted.arrayBuffer }).catch(console.warn);
     } else {
       // v1 legacy: audio embedded as base64
       const binary = atob(pf.data!);
