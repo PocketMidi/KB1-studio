@@ -4,11 +4,17 @@
 import { initFlashTools } from './flashTools';
 import {
   clearAllFiles,
+  clearSessionCache,
   deleteFile,
-  getFileById,
+  deleteHandle,
+  deleteProjectAudio,
   loadAllFiles,
+  loadHandle,
+  loadProjectAudio,
   loadState,
   saveFile,
+  saveHandle,
+  saveProjectAudio,
   saveState,
 } from './persistence';
 import { exportToPti, savePtiFile, type SlotAudio } from './ptiExport';
@@ -23,9 +29,24 @@ const PIANO_END = 95;     // B6 (highest Tracker slice) -> 48 notes total
 const KB1_LOW = 59;       // B3 (KB1 lowest key)
 const KB1_HIGH = 77;      // F5 (KB1 highest key)
 const NO_SELECTION = -1;  // sentinel: no slot focused in the sample editor
+const ENABLE_PERSISTENT_SESSION_CACHE = false;
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const FLAT_NAMES: Record<number, string> = { 1: 'Db', 3: 'Eb', 6: 'Gb', 8: 'Ab', 10: 'Bb' };
+
+function makeProjectId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `project-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function fileHandleKey(projectId: string, fileId: number): string {
+  return `project:${projectId}:file:${fileId}`;
+}
+
+function dirHandleKey(projectId: string, dirId: number): string {
+  return `project:${projectId}:dir:${dirId}`;
+}
 
 // ============================================
 // STATE
@@ -51,6 +72,9 @@ interface ImportedFile {
   id: number;                       // stable id for drag/drop reference
   name: string;                     // original filename
   file: File;                       // raw file handle
+  fileHandle: FileSystemFileHandle | null;
+  sourceDirId: number | null;       // id of the source directory this file was imported from (Adobe-style link)
+  relPath: string[] | null;         // path segments within that source directory (for re-resolve on open)
   mapping: SampleMapping;           // normalized parse result (note, vel, etc.)
   detectedRootMidi: number | null;  // raw pre-offset detected root note (for strip display)
   audioBuffer: AudioBuffer | null;  // decoded PCM (null until decoded / on failure)
@@ -58,6 +82,13 @@ interface ImportedFile {
   trimStart: number;                // seconds — start of active region (default 0)
   trimEnd: number;                  // seconds — end of active region (Infinity = use buffer.duration)
   normalized: boolean;              // true if RMS normalization has been applied
+}
+
+/** Where an imported file came from, so it can be re-linked on project open. */
+interface ImportSource {
+  handle?: FileSystemFileHandle | null;  // individual file handle (file-picker imports)
+  sourceDirId?: number | null;           // source directory id (folder imports)
+  relPath?: string[] | null;             // path within the source directory
 }
 
 // All files loaded via the Import picker (shown in the file bin)
@@ -72,6 +103,12 @@ const autoAssigned = new Set<number>();
 
 let nextFileId = 1;
 let selectedBinFileId: number | null = null;
+const fileHandleById = new Map<number, FileSystemFileHandle>();
+
+// Source directories the current project links to (Adobe-style asset links).
+// dirId -> directory handle (in memory); also persisted in IDB per project.
+let nextSourceDirId = 1;
+const sourceDirById = new Map<number, FileSystemDirectoryHandle>();
 
 // Multi-selection state (Stage 2: rubber-band / shift-click; Stage 3: group move)
 const selectedSlots = new Set<number>();   // set of midi notes in the current group
@@ -109,9 +146,11 @@ function updateWindowTitle() {
 let slotDuration = 0.0;
 // When true (default), all slots share the same duration. When false, each slot's trimEnd is independent.
 let slotDurationLocked = true;
+let currentProjectId = makeProjectId();
 
 // Export settings (affect estimated file size)
 let exportChannels = 2;   // 2 = stereo, 1 = mono
+const normalizingFileIds = new Set<number>();
 // Bit depth is always 16 — PTI format bitdepth field valid range is 4–16; 8-bit not accepted by Tracker Mini
 
 /**
@@ -120,6 +159,42 @@ let exportChannels = 2;   // 2 = stereo, 1 = mono
  * folder — keeping project, source WAVs, and .pti together naturally.
  */
 let currentProjectHandle: FileSystemFileHandle | null = null;
+
+/** Remembered last-used directory for WAV import pickers — persisted in IDB.
+ *  Loaded lazily on first import click; updated after each successful import. */
+let lastImportHandle: FileSystemHandle | null = null;
+let lastImportHandleLoaded = false;
+
+/** Remembered last-used directory for project open/save pickers — persisted in IDB.
+ *  Falls back to currentProjectHandle when set; loaded lazily on first project open. */
+let lastProjectHandle: FileSystemHandle | null = null;
+let lastProjectHandleLoaded = false;
+
+function cacheFileForSession(id: number, name: string, arrayBuffer: ArrayBuffer): void {
+  // Durable, project-scoped cache — the primary restore path on reopen
+  // (no permission prompts, no relinking). Always on.
+  saveProjectAudio(currentProjectId, id, name, arrayBuffer).catch(console.warn);
+  // Legacy refresh-restore session cache (opt-in).
+  if (!ENABLE_PERSISTENT_SESSION_CACHE) return;
+  saveFile({ id, name, arrayBuffer }).catch(console.warn);
+}
+
+async function getImportStartIn(): Promise<FileSystemHandle | undefined> {
+  if (!lastImportHandleLoaded) {
+    lastImportHandleLoaded = true;
+    lastImportHandle = await loadHandle('import').catch(() => null);
+  }
+  return lastImportHandle ?? undefined;
+}
+
+async function getProjectStartIn(): Promise<FileSystemHandle | undefined> {
+  if (currentProjectHandle) return currentProjectHandle;
+  if (!lastProjectHandleLoaded) {
+    lastProjectHandleLoaded = true;
+    lastProjectHandle = await loadHandle('project').catch(() => null);
+  }
+  return lastProjectHandle ?? undefined;
+}
 
 /** PTI fixed overhead: header (16 B) + main fields (376 B) + slice table (96 B) + CRC (4 B) */
 const PTI_OVERHEAD_BYTES = 16 + 376 + 4;
@@ -1200,7 +1275,7 @@ function undoLast() {
   importedFiles.push(...snap.files.map((entry) => ({ ...entry })));
   for (const entry of importedFiles) {
     entry.file.arrayBuffer().then((arrayBuffer) =>
-      saveFile({ id: entry.id, name: entry.name, arrayBuffer }).catch(console.warn),
+      cacheFileForSession(entry.id, entry.name, arrayBuffer),
     );
   }
   slotAssignments.clear();
@@ -2019,17 +2094,85 @@ function showConfirmDialog(
   requestAnimationFrame(() => confirmBtn.focus());
 }
 
+const AUDIO_PICKER_TYPES = [
+  { description: 'Audio files', accept: { 'audio/*': ['.wav', '.aif', '.aiff', '.flac', '.mp3', '.ogg'] } },
+];
+
 function initImport() {
   const importBtn = document.getElementById('import-btn');
   const fileInput = document.getElementById('import-file-input') as HTMLInputElement;
   if (!importBtn || !fileInput) return;
 
-  importBtn.addEventListener('click', () => fileInput.click());
+  importBtn.addEventListener('click', async () => {
+    // Batch import points at a sample FOLDER. The directory handle is remembered,
+    // so reopening the project re-links every file inside with a single permission
+    // grant (Adobe-style asset links) — no per-file prompts, no re-selection.
+    if ('showDirectoryPicker' in window) {
+      let dirHandle: FileSystemDirectoryHandle;
+      const importStartIn = await getImportStartIn();
+      try {
+        dirHandle = await (window as any).showDirectoryPicker({
+          mode: 'read',
+          ...(importStartIn != null ? { startIn: importStartIn } : {}),
+        });
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+        console.warn('showDirectoryPicker failed, falling back to file picker:', err);
+        fileInput.click();
+        return;
+      }
 
+      lastImportHandle = dirHandle;
+      lastImportHandleLoaded = true;
+      saveHandle('import', dirHandle).catch(console.warn);
+
+      const dirId = nextSourceDirId++;
+      await rememberSourceDir(dirId, dirHandle);
+
+      const collected = await collectAudioFromDirectory(dirHandle);
+      if (collected.length === 0) {
+        alert('No audio files found in that folder.');
+        return;
+      }
+      const files = collected.map((c) => c.file);
+      const sources = new Map<File, ImportSource>();
+      for (const c of collected) {
+        sources.set(c.file, { handle: c.handle, sourceDirId: dirId, relPath: c.relPath });
+      }
+      await ingestFiles(files, sources);
+    } else if ('showOpenFilePicker' in window) {
+      // Older browsers without directory picker: fall back to multi-file selection.
+      let handles: FileSystemFileHandle[];
+      const importStartIn = await getImportStartIn();
+      try {
+        handles = await (window as any).showOpenFilePicker({
+          multiple: true,
+          types: AUDIO_PICKER_TYPES,
+          ...(importStartIn != null ? { startIn: importStartIn } : {}),
+        });
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') fileInput.click();
+        return;
+      }
+      if (handles.length > 0) {
+        lastImportHandle = handles[0];
+        lastImportHandleLoaded = true;
+        saveHandle('import', handles[0]).catch(console.warn);
+        const files = await Promise.all(handles.map((h) => h.getFile()));
+        const sources = new Map<File, ImportSource>();
+        files.forEach((f, i) => sources.set(f, { handle: handles[i] }));
+        await ingestFiles(files, sources);
+      }
+    } else {
+      fileInput.click();
+    }
+  });
+
+  // Fallback: hidden input (used by unsupported browsers or drag-and-drop triggers)
   fileInput.addEventListener('change', async () => {
     if (!fileInput.files || fileInput.files.length === 0) return;
     const files = Array.from(fileInput.files);
-    fileInput.value = ''; // allow re-importing the same file
+    fileInput.value = '';
     await ingestFiles(files);
   });
 }
@@ -2039,7 +2182,33 @@ function initImportBinOnly() {
   const fileInput = document.getElementById('import-bin-only-input') as HTMLInputElement;
   if (!btn || !fileInput) return;
 
-  btn.addEventListener('click', () => fileInput.click());
+  btn.addEventListener('click', async () => {
+    if ('showOpenFilePicker' in window) {
+      let handles: FileSystemFileHandle[];
+      const importStartIn = await getImportStartIn();
+      try {
+        handles = await (window as any).showOpenFilePicker({
+          multiple: true,
+          types: AUDIO_PICKER_TYPES,
+          ...(importStartIn != null ? { startIn: importStartIn } : {}),
+        });
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') fileInput.click();
+        return;
+      }
+      if (handles.length > 0) {
+        lastImportHandle = handles[0];
+        lastImportHandleLoaded = true;
+        saveHandle('import', handles[0]).catch(console.warn);
+        const files = await Promise.all(handles.map((h) => h.getFile()));
+        const sources = new Map<File, ImportSource>();
+        files.forEach((f, i) => sources.set(f, { handle: handles[i] }));
+        await ingestFilesOnly(files, sources);
+      }
+    } else {
+      fileInput.click();
+    }
+  });
 
   fileInput.addEventListener('change', async () => {
     if (!fileInput.files || fileInput.files.length === 0) return;
@@ -2050,7 +2219,7 @@ function initImportBinOnly() {
 }
 
 /** Adds files straight to the bin — no mapping dialog, no auto-propagate. */
-async function ingestFilesOnly(files: File[]) {
+async function ingestFilesOnly(files: File[], sources: Map<File, ImportSource> = new Map()) {
   const audioFiles = files.filter((f) =>
     f.type.startsWith('audio/') || /\.(wav|aif|aiff|flac|mp3|ogg)$/i.test(f.name),
   );
@@ -2060,10 +2229,17 @@ async function ingestFilesOnly(files: File[]) {
 
   const added: ImportedFile[] = [];
   for (const file of audioFiles) {
+    const src = sources.get(file);
+    const fileHandle = src?.handle ?? null;
+    const sourceDirId = src?.sourceDirId ?? null;
+    const relPath = src?.relPath ?? null;
     const entry: ImportedFile = {
       id: nextFileId++,
       name: file.name,
       file,
+      fileHandle,
+      sourceDirId,
+      relPath,
       mapping: { file, rootMidi: null, rawName: file.name, confidence: 0, source: 'filename' },
       detectedRootMidi: null,
       audioBuffer: null,
@@ -2074,8 +2250,9 @@ async function ingestFilesOnly(files: File[]) {
     };
     importedFiles.push(entry);
     added.push(entry);
+    if (sourceDirId == null) await rememberImportedFileHandle(entry.id, fileHandle);
     file.arrayBuffer().then((ab) =>
-      saveFile({ id: entry.id, name: entry.name, arrayBuffer: ab }).catch(console.warn),
+      cacheFileForSession(entry.id, entry.name, ab),
     );
   }
 
@@ -2227,7 +2404,7 @@ async function collectEntries(entries: FileSystemEntry[]): Promise<File[]> {
  * Parse a batch of files through the import providers (SFZ or filename),
  * register them in the bin, decode audio, then auto-propagate to slots.
  */
-async function ingestFiles(files: File[]) {
+async function ingestFiles(files: File[], sources: Map<File, ImportSource> = new Map()) {
   const rawMappings = await importSamples(files);
   if (rawMappings.length === 0) return;
 
@@ -2244,10 +2421,17 @@ async function ingestFiles(files: File[]) {
 
   const added: ImportedFile[] = [];
   for (const mapping of mappings) {
+    const src = sources.get(mapping.file);
+    const fileHandle = src?.handle ?? null;
+    const sourceDirId = src?.sourceDirId ?? null;
+    const relPath = src?.relPath ?? null;
     const entry: ImportedFile = {
       id: nextFileId++,
       name: mapping.file.name,
       file: mapping.file,
+      fileHandle,
+      sourceDirId,
+      relPath,
       mapping,
       detectedRootMidi: rawRootByFile.get(mapping.file) ?? null,
       audioBuffer: null,
@@ -2258,9 +2442,11 @@ async function ingestFiles(files: File[]) {
     };
     importedFiles.push(entry);
     added.push(entry);
-    // Persist the raw bytes immediately so the session survives refresh
+    // Folder imports re-link via the shared directory handle; file imports keep their own handle.
+    if (sourceDirId == null) await rememberImportedFileHandle(entry.id, fileHandle);
+    // Optionally persist raw bytes when session cache mode is enabled.
     mapping.file.arrayBuffer().then((ab) =>
-      saveFile({ id: entry.id, name: entry.name, arrayBuffer: ab }).catch(console.warn),
+      cacheFileForSession(entry.id, entry.name, ab),
     );
   }
 
@@ -2350,31 +2536,50 @@ function normalizeAudioBuffer(
   return out;
 }
 
-async function normalizeEntry(entry: ImportedFile): Promise<void> {
-  if (!entry.audioBuffer) return;
+async function normalizeEntry(entry: ImportedFile, captureUndo = true): Promise<void> {
+  if (!entry.audioBuffer || entry.normalized || normalizingFileIds.has(entry.id)) return;
+  if (captureUndo) pushUndo();
+
+  normalizingFileIds.add(entry.id);
   const item = document.querySelector<HTMLElement>(`.file-bin-item[data-file-id="${entry.id}"]`);
   item?.classList.add('normalizing');
   // Yield to let the UI update before the heavy loop
   await new Promise(r => setTimeout(r, 0));
-  entry.audioBuffer = normalizeAudioBuffer(entry.audioBuffer);
-  entry.normalized = true;
-  item?.classList.remove('normalizing');
-  persistSession();
-  const assignedMidi = midiForFile(entry.id);
-  if (assignedMidi != null) {
-    buildPianoRoll();
-    if (assignedMidi === state.selectedMidi) updateSampleEditor();
+  try {
+    entry.audioBuffer = normalizeAudioBuffer(entry.audioBuffer);
+    entry.normalized = true;
+    persistSession();
+    const assignedMidi = midiForFile(entry.id);
+    if (assignedMidi != null) {
+      buildPianoRoll();
+      if (assignedMidi === state.selectedMidi) updateSampleEditor();
+    }
+  } finally {
+    normalizingFileIds.delete(entry.id);
+    item?.classList.remove('normalizing');
+    renderFileBin();
   }
-  renderFileBin();
 }
 
 async function normalizeAllEntries(): Promise<void> {
-  const btn = document.getElementById('file-bin-normalize-all');
-  if (btn) btn.textContent = 'Working…';
-  for (const entry of importedFiles) {
-    if (entry.audioBuffer) await normalizeEntry(entry);
+  const toNormalize = importedFiles.filter((entry) =>
+    entry.audioBuffer && !entry.normalized && !normalizingFileIds.has(entry.id),
+  );
+  if (toNormalize.length === 0) return;
+
+  pushUndo();
+  const btn = document.getElementById('file-bin-normalize-all') as HTMLButtonElement | null;
+  if (btn) {
+    btn.textContent = 'Working…';
+    btn.disabled = true;
   }
-  if (btn) btn.textContent = 'Normalize';
+  for (const entry of toNormalize) {
+    await normalizeEntry(entry, false);
+  }
+  if (btn) {
+    btn.textContent = 'Normalize';
+    btn.disabled = false;
+  }
 }
 
 // Reverse lookup: imported-file id -> assigned MIDI note (if any)
@@ -2383,13 +2588,89 @@ function midiForFile(fileId: number): number | null {
   return null;
 }
 
+async function rememberImportedFileHandle(fileId: number, handle: FileSystemFileHandle | null): Promise<void> {
+  if (!handle) return;
+  fileHandleById.set(fileId, handle);
+  await saveHandle(fileHandleKey(currentProjectId, fileId), handle);
+}
+
+async function rememberSourceDir(dirId: number, handle: FileSystemDirectoryHandle): Promise<void> {
+  sourceDirById.set(dirId, handle);
+  await saveHandle(dirHandleKey(currentProjectId, dirId), handle).catch(console.warn);
+}
+
+/** Query (without prompting) the read permission state for a persisted handle.
+ * Safe to call outside a user gesture — unlike requestPermission. */
+async function queryReadPermission(handle: FileSystemHandle): Promise<PermissionState> {
+  try {
+    return await (handle as any).queryPermission({ mode: 'read' });
+  } catch (err) {
+    console.warn('queryPermission failed:', err);
+    return 'denied';
+  }
+}
+
+/** Request read permission for a persisted handle. MUST be called from a user
+ * gesture (e.g. a button click) — the browser rejects it otherwise. */
+async function requestReadPermission(handle: FileSystemHandle): Promise<boolean> {
+  try {
+    return (await (handle as any).requestPermission({ mode: 'read' })) === 'granted';
+  } catch (err) {
+    console.warn('requestPermission failed:', err);
+    return false;
+  }
+}
+
+/** Resolve a file handle inside a directory by walking its relative path segments. */
+async function resolveRelPath(dir: FileSystemDirectoryHandle, relPath: string[]): Promise<FileSystemFileHandle> {
+  let cur: FileSystemDirectoryHandle = dir;
+  for (let i = 0; i < relPath.length - 1; i++) {
+    cur = await cur.getDirectoryHandle(relPath[i]);
+  }
+  return cur.getFileHandle(relPath[relPath.length - 1]);
+}
+
+/** Recursively collect audio files (with handles + relative paths) from a directory. */
+async function collectAudioFromDirectory(
+  dir: FileSystemDirectoryHandle,
+): Promise<Array<{ file: File; handle: FileSystemFileHandle; relPath: string[] }>> {
+  const out: Array<{ file: File; handle: FileSystemFileHandle; relPath: string[] }> = [];
+  async function walk(d: FileSystemDirectoryHandle, prefix: string[]): Promise<void> {
+    for await (const [name, child] of (d as any).entries() as AsyncIterable<[string, FileSystemHandle]>) {
+      if (child.kind === 'file') {
+        if (!/\.(wav|aif|aiff|flac|mp3|ogg)$/i.test(name)) continue;
+        const handle = child as FileSystemFileHandle;
+        const file = await handle.getFile();
+        out.push({ file, handle, relPath: [...prefix, name] });
+      } else if (child.kind === 'directory') {
+        await walk(child as FileSystemDirectoryHandle, [...prefix, name]);
+      }
+    }
+  }
+  await walk(dir, []);
+  out.sort((a, b) => a.relPath.join('/').localeCompare(b.relPath.join('/')));
+  return out;
+}
+
+async function clearCurrentProjectFileHandles(projectId = currentProjectId): Promise<void> {
+  const fileIds = Array.from(fileHandleById.keys());
+  const dirIds = Array.from(sourceDirById.keys());
+  fileHandleById.clear();
+  sourceDirById.clear();
+  await Promise.all([
+    ...fileIds.map((fileId) => deleteHandle(fileHandleKey(projectId, fileId)).catch(console.warn)),
+    ...dirIds.map((dirId) => deleteHandle(dirHandleKey(projectId, dirId)).catch(console.warn)),
+  ]);
+}
+
 // ============================================
 // PERSISTENCE HELPERS
 // ============================================
 
-function persistSession() {
+function persistSession(markAsDirty = true) {
   // Changes that reach here represent user edits — mark dirty unless we're in a clean restore
-  markDirty();
+  if (markAsDirty) markDirty();
+  if (!ENABLE_PERSISTENT_SESSION_CACHE) return;
   const instrumentName =
     (document.getElementById('instrument-name') as HTMLInputElement)?.value ?? '';
   saveState({
@@ -2441,6 +2722,9 @@ async function restoreSession() {
       id: pf.id,
       name: pf.name,
       file,
+      fileHandle: null,
+      sourceDirId: null,
+      relPath: null,
       mapping: {
         file,
         rootMidi: rootMidiById.get(pf.id) ?? null,
@@ -2456,9 +2740,12 @@ async function restoreSession() {
       normalized: false,
     };
     importedFiles.push(entry);
-    // Decode in background
+    // Decode in background.
+    // Note: new File([pf.arrayBuffer]) above already copied the bytes into Blob storage,
+    // so we can hand pf.arrayBuffer directly to decodeAudioData (no .slice() needed).
+    // This halves peak memory on restore — previously 3 copies of all audio were live at once.
     getAudioContext()
-      .decodeAudioData(pf.arrayBuffer.slice(0))
+      .decodeAudioData(pf.arrayBuffer)
       .then((buf) => {
         entry.audioBuffer = buf;
         // Re-apply normalization if it was active in the saved session
@@ -2600,11 +2887,13 @@ function clearBin() {
 
 interface KB1InstrumentFile {
   version: number;
+  projectId: string;
   instrumentName: string;
   slotDuration: number;
   slotDurationLocked?: boolean;
   exportChannels?: number;
   nextFileId: number;
+  sourceDirs?: number[];
   files: Array<{
     id: number;
     name: string;
@@ -2614,112 +2903,198 @@ interface KB1InstrumentFile {
     normalized?: boolean;
     rootMidi?: number | null;
     detectedRootMidi?: number | null;
+    sourceDirId?: number | null;
+    relPath?: string[] | null;
   }>;
   assignments: [number, number][];
   autoAssigned: number[];
 }
 
-/** Build the serialisable payload (shared by save + saveAs).
- * Version 3: self-contained fallback format.
- * Audio is embedded in the .kb1i so a saved project opens reliably even when
- * browser cache/IDB has been cleared or the file is opened on another origin.
+/**
+ * Stream-save the .kb1i JSON directly to a FileSystemFileHandle one file at a time.
+ * Never holds the full JSON in memory simultaneously — safe for
+ * large projects because files are stored as metadata only.
  */
-async function buildPayload(): Promise<{ payload: KB1InstrumentFile; json: string; blob: Blob }> {
-  const nameEl = document.getElementById('instrument-name') as HTMLInputElement;
-  const instrumentName = nameEl?.value.trim() || 'Untitled';
-
-  function arrayBufferToBase64(buffer: ArrayBuffer): string {
-    const bytes = new Uint8Array(buffer);
-    const chunkSize = 0x8000;
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    return btoa(binary);
+async function streamSaveToHandle(handle: FileSystemFileHandle, instrumentName: string): Promise<void> {
+  const enc = new TextEncoder();
+  // Write as UTF-8 bytes — Chrome's write(string) path can silently truncate
+  // large strings; the binary path flushes reliably.
+  async function writeStr(chunk: string): Promise<void> {
+    await writable.write(enc.encode(chunk));
   }
 
-  const files: KB1InstrumentFile['files'] = await Promise.all(importedFiles.map(async (f) => {
-    let data: string | undefined;
-    try {
-      const arrayBuffer = await f.file.arrayBuffer();
-      data = arrayBufferToBase64(arrayBuffer);
-    } catch (err) {
-      console.warn(`Failed to embed audio for ${f.name}:`, err);
+  const writable = await (handle as any).createWritable();
+  try {
+    // Metadata only — audio files are kept on disk and re-linked on open.
+    // No base64 embedding keeps project files small (KB, not GB).
+    await writeStr(
+      '{"version":3' +
+      ',"projectId":' + JSON.stringify(currentProjectId) +
+      ',"instrumentName":' + JSON.stringify(instrumentName) +
+      ',"slotDuration":' + JSON.stringify(slotDuration) +
+      ',"slotDurationLocked":' + JSON.stringify(slotDurationLocked) +
+      ',"exportChannels":' + JSON.stringify(exportChannels) +
+      ',"nextFileId":' + JSON.stringify(nextFileId) +
+      ',"sourceDirs":' + JSON.stringify(Array.from(new Set(
+        importedFiles.map((f) => f.sourceDirId).filter((d): d is number => d != null),
+      ))) +
+      ',"files":[',
+    );
+
+    for (let i = 0; i < importedFiles.length; i++) {
+      const f = importedFiles[i];
+      if (i > 0) await writeStr(',');
+      await writeStr(
+        JSON.stringify({
+          id: f.id,
+          name: f.name,
+          trimStart: f.trimStart,
+          trimEnd: f.trimEnd,
+          normalized: f.normalized,
+          rootMidi: f.mapping.rootMidi,
+          detectedRootMidi: f.detectedRootMidi,
+          sourceDirId: f.sourceDirId,
+          relPath: f.relPath,
+        }),
+      );
     }
 
-    return {
+    await writeStr(
+      '],"assignments":' + JSON.stringify(Array.from(slotAssignments.entries())) +
+      ',"autoAssigned":' + JSON.stringify(Array.from(autoAssigned)) + '}',
+    );
+    await writable.close();
+  } catch (err) {
+    try { await (writable as any).abort(); } catch { /* ignore */ }
+    throw err;
+  }
+}
+
+/** Build the serialisable payload (shared by save + saveAs).
+ * Version 3: metadata-only format.
+ * Audio files stay on disk and are re-linked through remembered file handles.
+ */
+async function buildPayload(): Promise<{ blob: Blob }> {
+  const nameEl = document.getElementById('instrument-name') as HTMLInputElement;
+  const instrumentName = nameEl?.value.trim() || 'Untitled';
+  const files: KB1InstrumentFile['files'] = [];
+  for (const f of importedFiles) {
+    files.push({
       id: f.id,
       name: f.name,
-      data,
       trimStart: f.trimStart,
       trimEnd: f.trimEnd,
       normalized: f.normalized,
       rootMidi: f.mapping.rootMidi,
       detectedRootMidi: f.detectedRootMidi,
-    };
-  }));
+      sourceDirId: f.sourceDirId,
+      relPath: f.relPath,
+    });
+  }
 
   const payload: KB1InstrumentFile = {
-    version: 3, instrumentName, slotDuration, slotDurationLocked, exportChannels, nextFileId, files,
+    version: 3,
+    projectId: currentProjectId,
+    instrumentName,
+    slotDuration,
+    slotDurationLocked,
+    exportChannels,
+    nextFileId,
+    sourceDirs: Array.from(new Set(
+      importedFiles.map((f) => f.sourceDirId).filter((d): d is number => d != null),
+    )),
+    files,
     assignments: Array.from(slotAssignments.entries()),
     autoAssigned: Array.from(autoAssigned),
   };
 
-  const json = JSON.stringify(payload);
-  const blob = new Blob([json], { type: 'application/json' });
-  return { payload, json, blob };
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  return { blob };
 }
 
 /**
- * Save using File System Access API (native OS dialog) when available,
- * falling back to a download link.
+ * Save using File System Access API (native OS dialog) when available.
+ * Uses streamSaveToHandle() so the full JSON is never in memory at once — safe for
+ * large projects. Falls back to an in-memory blob download for small projects only.
  * Returns true on success, false if the user cancelled.
  */
 async function saveInstrumentFile(): Promise<boolean> {
   const nameEl = document.getElementById('instrument-name') as HTMLInputElement;
   const instrumentName = nameEl?.value.trim() || 'Untitled';
-  const { blob } = await buildPayload();
+  const hasNativeSavePicker = 'showSaveFilePicker' in window;
 
-  // If we already have a handle, write silently (no dialog) — like Ctrl/Cmd+S in a desktop app
+  // Case 1: existing handle — stream silently (no dialog), like Cmd/Ctrl+S
   if (currentProjectHandle) {
     try {
-      const writable = await currentProjectHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
+      await streamSaveToHandle(currentProjectHandle, instrumentName);
       markClean();
-      persistSession();
+      persistSession(false);
       return true;
     } catch (err: any) {
       if (err?.name === 'AbortError') return false;
-      // Handle became stale (file moved/deleted) — fall through to picker
-      console.warn('Existing file handle failed, showing picker:', err);
+      // Only treat stale/missing handle as a recoverable error (fall through to picker).
+      // Any other error (disk full, permission denied, write failure) is shown to the user.
+      const isStaleHandle = err?.name === 'NotFoundError' || err?.name === 'NoModificationAllowedError';
+      if (!isStaleHandle) {
+        console.error('Save write failed:', err);
+        alert(`Save failed: ${err?.message ?? 'unknown error'}. Your changes are still unsaved.`);
+        return false;
+      }
+      console.warn('File handle stale — showing save dialog:', err);
       currentProjectHandle = null;
     }
   }
 
-  // No handle yet (first save) — show OS Save dialog
-  if ('showSaveFilePicker' in window) {
+  // Case 2: no handle yet — show OS Save dialog, then stream directly to the chosen file
+  if (hasNativeSavePicker) {
+    let handle: FileSystemFileHandle | null = null;
+    const projectStartIn = await getProjectStartIn();
     try {
-      const handle = await (window as any).showSaveFilePicker({
+      handle = await (window as any).showSaveFilePicker({
         suggestedName: `${instrumentName}.kb1i`,
         types: [{ description: 'KB1 Instrument', accept: { 'application/json': ['.kb1i'] } }],
+        ...(projectStartIn != null ? { startIn: projectStartIn } : {}),
       });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      currentProjectHandle = handle;
-      const savedName = (handle.name as string).replace(/\.kb1i$/i, '');
-      if (nameEl && savedName) nameEl.value = savedName;
-      markClean();
-      persistSession();
-      return true;
     } catch (err: any) {
       if (err?.name === 'AbortError') return false;
-      console.warn('showSaveFilePicker failed, falling back to download:', err);
+      console.warn('showSaveFilePicker failed:', err);
+      alert('Save failed: could not open the system Save dialog. Please try again.');
+      return false;
+    }
+
+    if (handle) {
+      try {
+        await streamSaveToHandle(handle, instrumentName);
+        currentProjectHandle = handle;
+        lastProjectHandle = handle;
+        lastProjectHandleLoaded = true;
+        saveHandle('project', handle).catch(console.warn);
+        const savedName = (handle.name as string).replace(/\.kb1i$/i, '');
+        if (nameEl && savedName) nameEl.value = savedName;
+        markClean();
+        persistSession(false);
+        return true;
+      } catch (err: any) {
+        console.warn('Stream save failed:', err);
+        alert('Save failed while writing the project file. Please try Save As again.');
+        return false;
+      }
     }
   }
 
-  // Fallback: trigger browser download
+  // Case 3: fallback only when native picker API is unavailable.
+  // Risky for large projects; warn and bail if total audio exceeds 80 MB.
+  const totalBytes = importedFiles.reduce((sum, f) => sum + (f.file?.size ?? 0), 0);
+  if (totalBytes > 80 * 1024 * 1024) {
+    alert(
+      `This project contains ${Math.round(totalBytes / 1024 / 1024)} MB of audio and is too large ` +
+      `to save via browser download.\n\n` +
+      `Please use Chrome or Edge — they support a native Save dialog that handles large projects.`,
+    );
+    return false;
+  }
+
+  const { blob } = await buildPayload();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2727,7 +3102,7 @@ async function saveInstrumentFile(): Promise<boolean> {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
   markClean();
-  persistSession();
+  persistSession(false);
   return true;
 }
 
@@ -2805,25 +3180,216 @@ function guardUnsaved(proceed: () => void): void {
   );
 }
 
-async function loadInstrumentFile(file: File) {
-  let payload: KB1InstrumentFile;
-  try {
-    const text = await file.text();
-    payload = JSON.parse(text) as KB1InstrumentFile;
-    if (payload.version !== 1 && payload.version !== 2 && payload.version !== 3) throw new Error('Unknown format version');
-  } catch {
-    alert('Could not read instrument file — it may be corrupted or an unsupported version.');
+/**
+ * One-click permission grant + relink. When a project reopens in a new browser
+ * session, persisted folder/file handles drop back to "prompt" permission and the
+ * browser only allows re-granting from a user gesture. This shows a single
+ * "Grant access" button; clicking it re-grants the remembered folders and relinks
+ * every file inside them — no folder re-picking, no per-file prompts.
+ */
+async function grantAccessAndRelink(
+  pendingDirs: Map<number, FileSystemDirectoryHandle>,
+  pendingDirFiles: Array<{ entry: ImportedFile; dirId: number; relPath: string[] }>,
+  pendingFileEntries: Array<{ entry: ImportedFile; handle: FileSystemFileHandle }>,
+  missingFiles: string[],
+): Promise<void> {
+  const total = pendingDirFiles.length + pendingFileEntries.length;
+  if (total === 0) return;
+
+  await new Promise<void>((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal';
+    modal.addEventListener('click', (e) => e.stopPropagation());
+
+    const msg = document.createElement('p');
+    msg.className = 'confirm-message';
+    msg.textContent =
+      `This project links ${total} sample${total === 1 ? '' : 's'} on your disk. ` +
+      `Grant access to relink them — they have not moved.`;
+
+    const actions = document.createElement('div');
+    actions.className = 'confirm-actions';
+
+    function dismiss() { overlay.remove(); }
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'confirm-btn-cancel';
+    cancelBtn.textContent = 'Skip';
+    cancelBtn.addEventListener('click', () => {
+      for (const { entry } of pendingDirFiles) missingFiles.push(entry.name);
+      for (const { entry } of pendingFileEntries) missingFiles.push(entry.name);
+      dismiss();
+      resolve();
+    });
+
+    const grantBtn = document.createElement('button');
+    grantBtn.className = 'confirm-btn-primary';
+    grantBtn.textContent = 'Grant access';
+    grantBtn.addEventListener('click', async () => {
+      grantBtn.disabled = true;
+      cancelBtn.disabled = true;
+      grantBtn.textContent = 'Relinking…';
+
+      // Re-grant each remembered folder (one prompt per folder; usually just one).
+      const grantedDirs = new Map<number, FileSystemDirectoryHandle>();
+      for (const [dirId, dh] of pendingDirs) {
+        if (await requestReadPermission(dh)) {
+          grantedDirs.set(dirId, dh);
+          sourceDirById.set(dirId, dh);
+          saveHandle(dirHandleKey(currentProjectId, dirId), dh).catch(console.warn);
+        }
+      }
+
+      // Resolve every folder-linked file through its granted directory.
+      for (const { entry, dirId, relPath } of pendingDirFiles) {
+        const dh = grantedDirs.get(dirId);
+        if (!dh) { missingFiles.push(entry.name); continue; }
+        try {
+          const fh = await resolveRelPath(dh, relPath);
+          const f = await fh.getFile();
+          entry.file = f; entry.mapping.file = f; entry.fileHandle = fh;
+          entry.decoding = true;
+          f.arrayBuffer().then((ab) => saveProjectAudio(currentProjectId, entry.id, entry.name, ab)).catch(console.warn);
+          decodeEntry(entry);
+        } catch (err) {
+          console.warn(`Relink failed for ${entry.name}:`, err);
+          missingFiles.push(entry.name);
+        }
+      }
+
+      // Per-file handles (single-file imports). Each may prompt individually.
+      for (const { entry, handle } of pendingFileEntries) {
+        if (!(await requestReadPermission(handle))) { missingFiles.push(entry.name); continue; }
+        try {
+          const f = await handle.getFile();
+          entry.file = f; entry.mapping.file = f; entry.fileHandle = handle;
+          entry.decoding = true;
+          fileHandleById.set(entry.id, handle);
+          saveHandle(fileHandleKey(currentProjectId, entry.id), handle).catch(console.warn);
+          f.arrayBuffer().then((ab) => saveProjectAudio(currentProjectId, entry.id, entry.name, ab)).catch(console.warn);
+          decodeEntry(entry);
+        } catch (err) {
+          console.warn(`Relink failed for ${entry.name}:`, err);
+          missingFiles.push(entry.name);
+        }
+      }
+
+      renderFileBin();
+      buildPianoRoll();
+      updateSampleEditor();
+      dismiss();
+      resolve();
+    });
+
+    actions.append(cancelBtn, grantBtn);
+    modal.append(msg, actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => grantBtn.focus());
+  });
+}
+
+/**
+ * Adobe-style relink: when a project loads but some files are missing (their
+ * source folder moved), let the user pick the folder ONCE. We then re-resolve
+ * every missing file by name within that folder (and its subfolders) and patch
+ * the matching bin entries — no per-file prompts.
+ */
+async function offerRelinkMissingFiles(missingNames: string[]): Promise<void> {
+  const relink = confirm(
+    `${missingNames.length} audio file${missingNames.length === 1 ? '' : 's'} could not be found at the remembered location.\n\n` +
+    `Click OK to choose the folder that contains them, or Cancel to load the project without them.`,
+  );
+  if (!relink) return;
+  if (!('showDirectoryPicker' in window)) {
+    alert('This browser cannot re-link folders. Please re-import the missing files.');
     return;
   }
 
-  // For v2: pre-fetch audio from IDB *before* we clear it below.
-  // (clearAllFiles() would wipe the very data we need to restore.)
-  const idbCache = new Map<number, { arrayBuffer: ArrayBuffer; name: string }>();
-  if (payload.version >= 2) {
-    for (const pf of payload.files) {
-      const persisted = await getFileById(pf.id);
-      if (persisted) idbCache.set(pf.id, persisted);
+  let dirHandle: FileSystemDirectoryHandle;
+  try {
+    dirHandle = await (window as any).showDirectoryPicker({ mode: 'read' });
+  } catch (err: any) {
+    if (err?.name !== 'AbortError') console.warn('Relink folder pick failed:', err);
+    return;
+  }
+
+  // Collect every audio file inside the chosen folder, indexed by filename.
+  const collected = await collectAudioFromDirectory(dirHandle);
+  const byName = new Map<string, { handle: FileSystemFileHandle; relPath: string[] }>();
+  for (const c of collected) {
+    if (!byName.has(c.file.name)) byName.set(c.file.name, { handle: c.handle, relPath: c.relPath });
+  }
+
+  const dirId = nextSourceDirId++;
+  await rememberSourceDir(dirId, dirHandle);
+
+  const stillMissing: string[] = [];
+  for (const name of missingNames) {
+    const match = byName.get(name);
+    const entry = importedFiles.find((e) => e.name === name && e.file.size === 0);
+    if (!match || !entry) { stillMissing.push(name); continue; }
+    try {
+      const f = await match.handle.getFile();
+      entry.file = f;
+      entry.mapping.file = f;
+      entry.fileHandle = match.handle;
+      entry.sourceDirId = dirId;
+      entry.relPath = match.relPath;
+      entry.decoding = true;
+      f.arrayBuffer().then((ab) => saveProjectAudio(currentProjectId, entry.id, entry.name, ab)).catch(console.warn);
+      decodeEntry(entry);
+    } catch (err) {
+      console.warn(`Failed to relink ${name}:`, err);
+      stillMissing.push(name);
     }
+  }
+
+  renderFileBin();
+  buildPianoRoll();
+  markDirty();
+
+  if (stillMissing.length > 0) {
+    alert(
+      `Re-linked ${missingNames.length - stillMissing.length} of ${missingNames.length} files.\n\n` +
+      `Still missing: ${stillMissing.join(', ')}`,
+    );
+  }
+}
+
+async function loadInstrumentFile(file: File) {
+  let parsed: unknown;
+  let payload: KB1InstrumentFile;
+  let text = '';
+  try {
+    text = await file.text();
+    parsed = JSON.parse(text);
+  } catch (err) {
+    console.warn('Failed to parse instrument file JSON:', file.name, err);
+    alert('Could not read instrument file — file is not valid JSON.');
+    return;
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    alert('Could not read instrument file — invalid project structure.');
+    return;
+  }
+
+  payload = parsed as KB1InstrumentFile;
+  const rawVersion = (payload as { version?: unknown }).version;
+  const version = typeof rawVersion === 'string' ? Number(rawVersion) : rawVersion;
+  if (version !== 3) {
+    console.warn('Unsupported project version:', { file: file.name, version: rawVersion });
+    alert(`Could not read instrument file — unsupported project version (${String(rawVersion)}).`);
+    return;
+  }
+
+  if (!Array.isArray(payload.files)) {
+    console.warn('Invalid project payload: files array missing', file.name);
+    alert('Could not read instrument file — invalid project structure (missing files array).');
+    return;
   }
 
   // Stop playback + reset state
@@ -2866,73 +3432,170 @@ async function loadInstrumentFile(file: File) {
   if (nameEl) nameEl.value = filenameBase || payload.instrumentName || 'Untitled';
   updateWindowTitle();
 
-  // Reconstruct files — v2: load audio from IDB; v1 (legacy): decode from embedded base64
-  const missingNames: string[] = [];
-  for (const pf of payload.files) {
-    let restoredFile: File;
-    if (payload.version >= 2) {
-      // v2: audio was pre-fetched from IDB before clearAllFiles() ran
-      const persisted = idbCache.get(pf.id);
-      if (persisted) {
-        restoredFile = new File([persisted.arrayBuffer], pf.name);
-        // Re-populate IDB after the clearAllFiles() above
-        saveFile({ id: pf.id, name: pf.name, arrayBuffer: persisted.arrayBuffer }).catch(console.warn);
-      } else if (pf.data) {
-        // v3 fallback: decode from embedded audio data when cache is missing
-        const binary = atob(pf.data);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        restoredFile = new File([bytes], pf.name);
-        saveFile({ id: pf.id, name: pf.name, arrayBuffer: bytes.buffer }).catch(console.warn);
-      } else {
-        missingNames.push(pf.name);
-        continue;
-      }
+  const rawProjectId = (payload as { projectId?: unknown }).projectId;
+  currentProjectId = typeof rawProjectId === 'string' && rawProjectId ? rawProjectId : makeProjectId();
+  fileHandleById.clear();
+  sourceDirById.clear();
+
+  // PRIMARY restore path: audio cached in IndexedDB for this project.
+  // Survives page reloads / browser restarts with NO permission prompts and NO
+  // relinking. Folder/file handles below are only a fallback (e.g. project file
+  // opened on a different machine where the cache is empty).
+  const audioMap = await loadProjectAudio(currentProjectId).catch((err) => {
+    console.warn('Failed to load cached project audio:', err);
+    return new Map<number, { name: string; arrayBuffer: ArrayBuffer }>();
+  });
+
+  // ---- Resolve source directories first (ONE permission prompt per folder) ----
+  // Every file imported via "Batch import" shares a directory handle. Granting read
+  // on the folder re-links all of its files at once — no per-file prompts.
+  const dirIds: number[] = Array.isArray(payload.sourceDirs)
+    ? payload.sourceDirs.filter((d): d is number => typeof d === 'number')
+    : Array.from(new Set(
+      payload.files
+        .map((pf) => pf.sourceDirId)
+        .filter((d): d is number => typeof d === 'number'),
+    ));
+  const resolvedDirs = new Map<number, FileSystemDirectoryHandle>();
+  const pendingDirs = new Map<number, FileSystemDirectoryHandle>();
+  for (const dirId of dirIds) {
+    const dirHandle = await loadHandle(dirHandleKey(currentProjectId, dirId)).catch(console.warn) as FileSystemDirectoryHandle | null;
+    if (!dirHandle) continue;
+    nextSourceDirId = Math.max(nextSourceDirId, dirId + 1);
+    // Only QUERY here — requestPermission needs a user gesture, which is gone by now.
+    // Folders needing a grant are collected and unlocked via a single click below.
+    if ((await queryReadPermission(dirHandle)) === 'granted') {
+      resolvedDirs.set(dirId, dirHandle);
+      sourceDirById.set(dirId, dirHandle);
     } else {
-      // v1 legacy: audio embedded as base64
-      const binary = atob(pf.data!);
+      pendingDirs.set(dirId, dirHandle);
+    }
+  }
+
+  const missingFiles: string[] = [];
+  // Files whose folder is remembered but needs a permission grant (not truly missing).
+  const pendingDirFiles: Array<{ entry: ImportedFile; dirId: number; relPath: string[] }> = [];
+  const pendingFileEntries: Array<{ entry: ImportedFile; handle: FileSystemFileHandle }> = [];
+
+  // Reconstruct ImportedFile entries: directory-linked files first, then per-file handles.
+  for (const pf of payload.files) {
+    let restoredFile: File | null = null;
+    let restoredHandle: FileSystemFileHandle | null = null;
+    let pendingDirId: number | null = null;
+    let pendingFileHandle: FileSystemFileHandle | null = null;
+    const sourceDirId = (pf as { sourceDirId?: number | null }).sourceDirId ?? null;
+    const relPath = (pf as { relPath?: string[] | null }).relPath ?? null;
+
+    if (pf.data) {
+      // Legacy: embedded base64 audio (backward compat with old saves)
+      const binary = atob(pf.data);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       restoredFile = new File([bytes], pf.name);
-      // Migrate into IDB so future saves work
-      saveFile({ id: pf.id, name: pf.name, arrayBuffer: bytes.buffer }).catch(console.warn);
+    } else if (audioMap.has(pf.id)) {
+      // PRIMARY: restore from the durable project audio cache (no prompts).
+      const rec = audioMap.get(pf.id)!;
+      restoredFile = new File([rec.arrayBuffer], pf.name);
+    } else if (sourceDirId != null && relPath && relPath.length > 0 && resolvedDirs.has(sourceDirId)) {
+      // Folder-linked file: resolve within the granted directory handle.
+      try {
+        const fh = await resolveRelPath(resolvedDirs.get(sourceDirId)!, relPath);
+        restoredFile = await fh.getFile();
+        restoredHandle = fh;
+      } catch (err) {
+        console.warn(`Could not resolve ${relPath.join('/')} inside source folder:`, err);
+      }
+    } else if (sourceDirId != null && relPath && relPath.length > 0 && pendingDirs.has(sourceDirId)) {
+      // Folder remembered but awaiting a permission grant — defer (not missing).
+      pendingDirId = sourceDirId;
+    } else {
+      // Per-file handle (single-file imports).
+      const rememberedHandle = await loadHandle(fileHandleKey(currentProjectId, pf.id)).catch(console.warn) as FileSystemFileHandle | null;
+      if (rememberedHandle) {
+        if ((await queryReadPermission(rememberedHandle)) === 'granted') {
+          try {
+            restoredFile = await rememberedHandle.getFile();
+            restoredHandle = rememberedHandle;
+          } catch (err) {
+            console.warn(`Remembered file handle is stale for ${pf.name}:`, err);
+          }
+        } else {
+          pendingFileHandle = rememberedHandle; // needs a grant click
+        }
+      }
     }
+
+    if (!restoredFile && pendingDirId == null && pendingFileHandle == null) {
+      missingFiles.push(pf.name);
+      restoredFile = new File([], pf.name);
+    }
+
     const entry: ImportedFile = {
-      id: pf.id, name: pf.name, file: restoredFile,
+      id: pf.id, name: pf.name, file: restoredFile ?? new File([], pf.name),
+      fileHandle: restoredHandle,
+      sourceDirId,
+      relPath,
       mapping: {
-        file: restoredFile,
+        file: restoredFile ?? new File([], pf.name),
         rootMidi: pf.rootMidi ?? null,
         rawName: pf.name,
         confidence: 0,
         source: 'filename' as const,
       },
       detectedRootMidi: (pf as { detectedRootMidi?: number | null }).detectedRootMidi ?? null,
-      audioBuffer: null, decoding: true,
+      audioBuffer: null, decoding: (restoredFile?.size ?? 0) > 0,
       trimStart: pf.trimStart ?? 0, trimEnd: pf.trimEnd ?? Infinity,
       normalized: pf.normalized ?? false,
     };
     importedFiles.push(entry);
-    decodeEntry(entry);
+    if (pendingDirId != null && relPath) pendingDirFiles.push({ entry, dirId: pendingDirId, relPath });
+    if (pendingFileHandle) pendingFileEntries.push({ entry, handle: pendingFileHandle });
+    // Re-persist per-file handles only (directory-linked files re-link via the dir handle).
+    if (restoredHandle && sourceDirId == null) {
+      fileHandleById.set(entry.id, restoredHandle);
+      saveHandle(fileHandleKey(currentProjectId, entry.id), restoredHandle).catch(console.warn);
+    }
+    // Files restored via a handle fallback aren't in the cache yet — cache them
+    // now so the next reopen is instant (no prompts).
+    if ((restoredFile?.size ?? 0) > 0 && !audioMap.has(pf.id)) {
+      restoredFile!.arrayBuffer()
+        .then((ab) => saveProjectAudio(currentProjectId, pf.id, pf.name, ab))
+        .catch(console.warn);
+    }
+    if ((restoredFile?.size ?? 0) > 0) decodeEntry(entry);
+    else entry.decoding = false; // placeholder — no audio yet
   }
 
-  if (missingNames.length > 0) {
-    console.warn('Missing audio files (not in IDB):', missingNames);
-    // Non-fatal: project metadata loads, slots show as empty for missing files
+  // Re-persist resolved directory handles so a subsequent save keeps the links intact.
+  for (const [dirId, dirHandle] of resolvedDirs) {
+    saveHandle(dirHandleKey(currentProjectId, dirId), dirHandle).catch(console.warn);
   }
 
+  // Assignments must be applied before we render/relink.
   for (const [midi, id] of payload.assignments) slotAssignments.set(midi, id);
   for (const midi of payload.autoAssigned) autoAssigned.add(midi);
 
   markClean();
-  persistSession();
-
+  persistSession(false);
   renderFileBin();
   buildPianoRoll();
   updateSampleEditor();
+
+  // If remembered folders/files need a permission grant, unlock them with one click.
+  if (pendingDirs.size > 0 || pendingFileEntries.length > 0) {
+    await grantAccessAndRelink(pendingDirs, pendingDirFiles, pendingFileEntries, missingFiles);
+  }
+
+  // Anything still unresolved (folder genuinely moved) → offer a one-click folder relink.
+  if (missingFiles.length > 0) {
+    await offerRelinkMissingFiles(missingFiles);
+  }
 }
 
 function newInstrument() {
   stopSample();
+  const previousProjectId = currentProjectId;
+  const previousWasSaved = currentProjectHandle != null;
   importedFiles.length = 0;
   slotAssignments.clear();
   autoAssigned.clear();
@@ -2941,6 +3604,11 @@ function newInstrument() {
   slotDurationLocked = true;
   exportChannels = 2;
   currentProjectHandle = null;
+  currentProjectId = makeProjectId();
+  clearCurrentProjectFileHandles(previousProjectId).catch(console.warn);
+  // Discard cached audio only for projects that were never saved (orphaned).
+  // Saved projects keep their cache so reopening is instant.
+  if (!previousWasSaved) deleteProjectAudio(previousProjectId).catch(console.warn);
   updateLengthDisplay();
   // Sync export toggles back to defaults
   const chInput = document.getElementById('export-channels') as HTMLInputElement | null;
@@ -2953,7 +3621,7 @@ function newInstrument() {
   buildPianoRoll();
   renderFileBin();
   updateSampleEditor();
-  persistSession();
+  persistSession(false);
 }
 
 function updateStereoAutoDetect(): void {
@@ -2962,18 +3630,20 @@ function updateStereoAutoDetect(): void {
   const wrapper = chInput.closest('.toolbar-toggle') as HTMLElement | null;
   const chLabel = wrapper?.querySelector('.toolbar-label');
 
+  function syncStereoUiFromState(input: HTMLInputElement) {
+    const stereoOn = exportChannels === 2;
+    input.checked = stereoOn;
+    wrapper?.classList.toggle('is-on', stereoOn);
+    if (chLabel) chLabel.textContent = stereoOn ? 'Stereo' : 'Mono';
+  }
+
   const decoded = importedFiles.filter(f => f.audioBuffer != null);
   if (decoded.length === 0) {
-    // No decoded files yet — re-enable toggle, restore stereo default
+    // No decoded files yet — re-enable toggle and keep current user setting.
     chInput.disabled = false;
     wrapper?.classList.remove('is-disabled');
-    if (!chInput.checked) {
-      chInput.checked = true;
-      exportChannels = 2;
-      wrapper?.classList.add('is-on');
-      if (chLabel) chLabel.textContent = 'Stereo';
-      updateExportSize();
-    }
+    syncStereoUiFromState(chInput);
+    updateExportSize();
     return;
   }
 
@@ -2992,18 +3662,11 @@ function updateStereoAutoDetect(): void {
       updateSampleEditor();
     }
   } else {
-    // At least one stereo file — unlock and ensure stereo is selected
+    // At least one stereo file — unlock toggle but preserve manual Stereo/Mono choice.
     chInput.disabled = false;
     wrapper?.classList.remove('is-disabled');
-    if (!chInput.checked) {
-      chInput.checked = true;
-      exportChannels = 2;
-      wrapper?.classList.add('is-on');
-      if (chLabel) chLabel.textContent = 'Stereo';
-      updateExportSize();
-      buildPianoRoll({ skipAutoCenter: true });
-      updateSampleEditor();
-    }
+    syncStereoUiFromState(chInput);
+    updateExportSize();
   }
 }
 
@@ -3016,6 +3679,13 @@ function renderFileBin() {
   if (count) count.textContent = String(importedFiles.length);
   const hasFiles = importedFiles.length > 0;
   if (clearAllBtn) clearAllBtn.style.display = hasFiles ? 'flex' : 'none';
+
+  const normalizeAllBtn = document.getElementById('file-bin-normalize-all') as HTMLButtonElement | null;
+  if (normalizeAllBtn) {
+    const canNormalizeAny = importedFiles.some((f) => f.audioBuffer && !f.normalized && !normalizingFileIds.has(f.id));
+    normalizeAllBtn.disabled = !canNormalizeAny;
+    normalizeAllBtn.title = canNormalizeAny ? 'Normalize all decoded files to peak (-1 dBFS)' : 'All files already normalized';
+  }
 
   updateExportSize(); // keep size display in sync with assignment changes
   updateStereoAutoDetect();
@@ -3070,9 +3740,18 @@ function renderFileBin() {
     const normalizeBtn = document.createElement('button');
     normalizeBtn.className = 'file-bin-normalize';
     normalizeBtn.textContent = '↑';
-    normalizeBtn.title = 'Normalize to peak (-1 dBFS)';
+    if (f.normalized) {
+      normalizeBtn.disabled = true;
+      normalizeBtn.title = 'Already normalized';
+    } else if (f.decoding || !f.audioBuffer || normalizingFileIds.has(f.id)) {
+      normalizeBtn.disabled = true;
+      normalizeBtn.title = f.decoding ? 'Decoding audio…' : 'Normalize unavailable';
+    } else {
+      normalizeBtn.title = 'Normalize to peak (-1 dBFS)';
+    }
     normalizeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (normalizeBtn.disabled) return;
       normalizeEntry(f);
     });
     item.appendChild(normalizeBtn);
@@ -3836,7 +4515,9 @@ function setPlayheadFraction(fraction: number) {
     playhead.style.display = 'none';
   } else {
     playhead.style.display = '';
-    playhead.style.left = `${screenFrac * frame.clientWidth}px`;
+    // Minimum 12px from left so the playhead parks just inside the start bracket,
+    // keeping the zoom-bar left thumb accessible
+    playhead.style.left = `${Math.max(12, screenFrac * frame.clientWidth)}px`;
   }
 }
 
@@ -4204,8 +4885,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load Instrument — guard unsaved, then open file picker
   const loadInput = document.getElementById('load-instrument-input') as HTMLInputElement | null;
   document.getElementById('load-instrument-btn')?.addEventListener('click', () => {
-    guardUnsaved(() => loadInput?.click());
+    guardUnsaved(async () => {
+      if ('showOpenFilePicker' in window) {
+        let handles: FileSystemFileHandle[];
+        const projectStartIn = await getProjectStartIn();
+        try {
+          handles = await (window as any).showOpenFilePicker({
+            multiple: false,
+            types: [{ description: 'KB1 Instrument', accept: { 'application/json': ['.kb1i'] } }],
+            ...(projectStartIn != null ? { startIn: projectStartIn } : {}),
+          });
+        } catch (err: any) {
+          if (err?.name !== 'AbortError') loadInput?.click(); // unexpected error → fall back
+          return;
+        }
+        if (handles.length > 0) {
+          const handle = handles[0];
+          lastProjectHandle = handle;
+          lastProjectHandleLoaded = true;
+          saveHandle('project', handle).catch(console.warn);
+          currentProjectHandle = handle; // Cmd+S will save back to this file
+          const file = await handle.getFile();
+          await loadInstrumentFile(file);
+        }
+      } else {
+        loadInput?.click();
+      }
+    });
   });
+  // Fallback for browsers without File System Access API
   loadInput?.addEventListener('change', async () => {
     if (!loadInput.files?.length) return;
     await loadInstrumentFile(loadInput.files[0]);
@@ -4214,6 +4922,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // New Instrument — guard unsaved changes
   document.getElementById('new-instrument-btn')?.addEventListener('click', () => {
+    guardUnsaved(newInstrument);
+  });
+
+  // Close Project — explicit action that clears the current project workspace.
+  document.getElementById('close-project-btn')?.addEventListener('click', () => {
     guardUnsaved(newInstrument);
   });
 
@@ -4229,8 +4942,14 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSampleEditor();
   renderFileBin();
 
-  // Restore previous session from IndexedDB
-  restoreSession().catch(console.warn);
+  // Session behavior is policy-driven by ENABLE_PERSISTENT_SESSION_CACHE.
+  if (ENABLE_PERSISTENT_SESSION_CACHE) {
+    restoreSession().catch(console.warn);
+  } else {
+    // File-first mode: clear transient browser cache on startup.
+    // Users reopen projects from saved .kb1i files rather than auto-restored sessions.
+    clearSessionCache().catch(console.warn);
+  }
 
   // PWA File Handling API — fires when user opens a .kb1i file from the OS
   if ('launchQueue' in window) {

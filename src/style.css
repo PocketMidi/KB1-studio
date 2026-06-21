@@ -1175,6 +1175,12 @@ body {
     color: var(--success) !important;
 }
 
+.file-bin-normalize:disabled {
+    opacity: 0.35 !important;
+    cursor: default;
+    color: var(--text-secondary) !important;
+}
+
 .file-bin-item.normalizing .file-bin-normalize {
     opacity: 1;
     color: var(--accent-bronze);
@@ -1253,9 +1259,9 @@ body {
 /* The draggable vertical line */
 .trim-handle {
     position: absolute;
-    top: 40px;
+    top: 0px;
     /* inset from top so note label stays clear */
-    bottom: 60px;
+    bottom: 30px;
     /* inset from bottom so ruler + file label stay clear */
     width: 4px;
     background: var(--accent-primary);
@@ -1274,7 +1280,7 @@ body {
     position: absolute;
     top: 0;
     height: 4px;
-    width: 18px;
+    width: 8px;
     background: var(--accent-primary);
     pointer-events: auto;
 }
@@ -1285,7 +1291,7 @@ body {
     position: absolute;
     bottom: 0;
     height: 4px;
-    width: 18px;
+    width: 8px;
     background: var(--accent-primary);
     pointer-events: auto;
 }
@@ -3024,7 +3030,7 @@ body {
 /* Toast */
 .toast {
     position: fixed;
-    top: 24px;
+    top: 80px;
     left: 50%;
     transform: translateX(-50%);
     width: fit-content;
