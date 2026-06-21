@@ -2927,6 +2927,57 @@ async function newInstrument() {
   await saveInstrumentFile();
 }
 
+function updateStereoAutoDetect(): void {
+  const chInput = document.getElementById('export-channels') as HTMLInputElement | null;
+  if (!chInput) return;
+  const wrapper = chInput.closest('.toolbar-toggle') as HTMLElement | null;
+  const chLabel = wrapper?.querySelector('.toolbar-label');
+
+  const decoded = importedFiles.filter(f => f.audioBuffer != null);
+  if (decoded.length === 0) {
+    // No decoded files yet — re-enable toggle, restore stereo default
+    chInput.disabled = false;
+    wrapper?.classList.remove('is-disabled');
+    if (!chInput.checked) {
+      chInput.checked = true;
+      exportChannels = 2;
+      wrapper?.classList.add('is-on');
+      if (chLabel) chLabel.textContent = 'Stereo';
+      updateExportSize();
+    }
+    return;
+  }
+
+  const allMono = decoded.every(f => f.audioBuffer!.numberOfChannels === 1);
+  if (allMono) {
+    // Force mono and lock the toggle
+    chInput.disabled = true;
+    wrapper?.classList.add('is-disabled');
+    if (chInput.checked) {
+      chInput.checked = false;
+      exportChannels = 1;
+      wrapper?.classList.remove('is-on');
+      if (chLabel) chLabel.textContent = 'Mono';
+      updateExportSize();
+      buildPianoRoll({ skipAutoCenter: true });
+      updateSampleEditor();
+    }
+  } else {
+    // At least one stereo file — unlock and ensure stereo is selected
+    chInput.disabled = false;
+    wrapper?.classList.remove('is-disabled');
+    if (!chInput.checked) {
+      chInput.checked = true;
+      exportChannels = 2;
+      wrapper?.classList.add('is-on');
+      if (chLabel) chLabel.textContent = 'Stereo';
+      updateExportSize();
+      buildPianoRoll({ skipAutoCenter: true });
+      updateSampleEditor();
+    }
+  }
+}
+
 function renderFileBin() {
   const list = document.getElementById('file-bin-list');
   const count = document.getElementById('file-bin-count');
@@ -2938,6 +2989,7 @@ function renderFileBin() {
   if (clearAllBtn) clearAllBtn.style.display = hasFiles ? 'flex' : 'none';
 
   updateExportSize(); // keep size display in sync with assignment changes
+  updateStereoAutoDetect();
 
   list.innerHTML = '';
 

@@ -525,6 +525,12 @@ body {
     color: var(--accent-bronze);
 }
 
+.toolbar-toggle.is-disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .toolbar-divider-v {
     width: 1px;
     height: 14px;
