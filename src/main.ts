@@ -2900,7 +2900,7 @@ async function loadInstrumentFile(file: File) {
   updateSampleEditor();
 }
 
-async function newInstrument() {
+function newInstrument() {
   stopSample();
   importedFiles.length = 0;
   slotAssignments.clear();
@@ -2923,8 +2923,6 @@ async function newInstrument() {
   renderFileBin();
   updateSampleEditor();
   persistSession();
-  // Immediately open save dialog so the project is named and placed before work begins
-  await saveInstrumentFile();
 }
 
 function updateStereoAutoDetect(): void {
