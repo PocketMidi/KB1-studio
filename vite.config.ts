@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/kb1-studio/', // GitHub Pages base URL
+  base: '/KB1-studio/', // GitHub Pages base URL
   build: {
     outDir: 'dist',
     sourcemap: true,

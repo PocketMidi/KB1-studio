@@ -7,7 +7,7 @@
 
 import type { FirmwareRelease } from './types';
 
-// Vite's BASE_URL is '/KB1-flash/' in production, '/' in dev.
+// Vite's BASE_URL is '/KB1-studio/' in production, '/' in dev.
 const FIRMWARE_BASE = import.meta.env.BASE_URL.replace(/\/$/, '') + '/firmware/';
 
 /**
