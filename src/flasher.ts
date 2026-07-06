@@ -27,7 +27,9 @@ export class KB1Flasher {
     private statusCallback: ((status: FlashStatus) => void) | null = null;
     private disconnectCallback: (() => void) | null = null;
     private disconnectHandler: (() => void) | null = null;
+    private serialDisconnectHandler: ((event: Event) => void) | null = null;
     private disconnectListenerActive: boolean = false;
+    private disconnectNotified: boolean = false;
 
     /**
      * Check if Web Serial API is supported
@@ -51,6 +53,20 @@ export class KB1Flasher {
     }
 
     /**
+     * Notify the UI once when the selected device disappears.
+     */
+    private notifyDisconnect(): void {
+        if (this.disconnectNotified) return;
+
+        this.disconnectNotified = true;
+        console.log('Device disconnected (USB unplugged)');
+
+        if (this.disconnectCallback) {
+            this.disconnectCallback();
+        }
+    }
+
+    /**
      * Set up disconnect listener on the serial port
      */
     private setupDisconnectListener(): void {
@@ -59,15 +75,20 @@ export class KB1Flasher {
 
         // Create bound handler so we can remove it later if needed
         this.disconnectHandler = () => {
-            console.log('Device disconnected (USB unplugged)');
             this.disconnectListenerActive = false; // Reset flag
-            if (this.disconnectCallback) {
-                this.disconnectCallback();
-            }
+            this.notifyDisconnect();
+        };
+
+        this.serialDisconnectHandler = (event: Event) => {
+            if (event.target !== this.port) return;
+
+            this.disconnectListenerActive = false; // Reset flag
+            this.notifyDisconnect();
         };
 
         // Listen for disconnect event (fires when USB is unplugged)
         this.port.addEventListener('disconnect', this.disconnectHandler);
+        navigator.serial.addEventListener('disconnect', this.serialDisconnectHandler);
         this.disconnectListenerActive = true;
     }
 
@@ -100,6 +121,7 @@ export class KB1Flasher {
             }
 
             console.log('USB port selected');
+            this.disconnectNotified = false;
 
             // Set up disconnect listener to detect when USB is unplugged
             this.setupDisconnectListener();
@@ -397,8 +419,12 @@ export class KB1Flasher {
             // Remove disconnect listener before closing port
             if (this.port && this.disconnectHandler) {
                 this.port.removeEventListener('disconnect', this.disconnectHandler);
+                if (this.serialDisconnectHandler) {
+                    navigator.serial.removeEventListener('disconnect', this.serialDisconnectHandler);
+                }
                 this.disconnectListenerActive = false;
                 this.disconnectHandler = null;
+                this.serialDisconnectHandler = null;
             }
 
             if (this.port) {
@@ -411,6 +437,7 @@ export class KB1Flasher {
             this.transport = null;
             this.loader = null;
             this.nvsBackup = null;
+            this.disconnectNotified = false;
         }
     }
 

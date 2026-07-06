@@ -54,41 +54,49 @@ export function initFlashTools(): void {
 
     el('reset-btn')?.addEventListener('click', resetFlash);
     el('retry-btn')?.addEventListener('click', resetFlash);
+
+    el('flash-toast')?.querySelector('.flash-toast-close')?.addEventListener('click', () => {
+        el('flash-toast')?.classList.remove('visible');
+    });
 }
 
 // ─── Connection ─────────────────────────────────────────────────────────────
 
+function setConnState(state: ConnectionState): void {
+    connectionState = state;
+    const btn = el('conn-btn');
+    if (!btn) return;
+    btn.setAttribute('data-state', state);
+    const label = btn.querySelector<HTMLElement>('.conn-label');
+    if (label) {
+        label.textContent = state === 'connecting' ? 'CONNECTING...'
+            : state === 'connected' ? 'KB1'
+                : 'CONNECT';
+    }
+    btn.title = state === 'connected' ? 'Disconnect KB1' : '';
+    updateFlashButtonStates();
+}
+
 function setupConnectionButtons(): void {
-    const btnConnect = el('connect-btn');
-    const btnDisconnect = el('disconnect-btn');
-    if (!btnConnect || !btnDisconnect) return;
+    const btn = el('conn-btn');
+    if (!btn) return;
 
-    const connectLabel = btnConnect.querySelector<HTMLElement>('.btn-connect-label');
-    const connectSpinner = btnConnect.querySelector<HTMLElement>('.btn-spinner');
+    btn.addEventListener('click', async () => {
+        if (connectionState === 'connecting') return;
 
-    function setConnecting(on: boolean): void {
-        btnConnect!.classList.toggle('connecting', on);
-        if (connectLabel) connectLabel.textContent = on ? 'CONNECTING...' : 'CONNECT';
-        if (connectSpinner) connectSpinner.style.display = on ? 'block' : '';
-    }
-
-    function setConnected(connected: boolean): void {
-        btnConnect!.classList.toggle('hidden', connected);
-        btnDisconnect!.classList.toggle('hidden', !connected);
-        const status = el('connection-status');
-        const msg = el('status-message');
-        if (status) {
-            status.classList.toggle('connected', connected);
-            status.classList.toggle('disconnected', !connected);
+        if (connectionState === 'connected') {
+            if (flasher) {
+                try { await flasher.cleanup(); } catch { /* ignore */ }
+                flasher = null;
+            }
+            setConnState('disconnected');
+            clearDeviceInfo();
+            resetFlash();
+            return;
         }
-        if (msg) msg.textContent = connected ? 'Connected' : 'Not Connected';
-    }
 
-    btnConnect.addEventListener('click', async () => {
         try {
-            connectionState = 'connecting';
-            setConnecting(true);
-            updateFlashButtonStates();
+            setConnState('connecting');
 
             if (!flasher) {
                 flasher = new KB1Flasher();
@@ -101,47 +109,29 @@ function setupConnectionButtons(): void {
             await loadDeviceInfo();
             await flasher.resetToFirmware();
 
-            connectionState = 'connected';
-            setConnecting(false);
-            setConnected(true);
-            updateFlashButtonStates();
+            setConnState('connected');
         } catch (err) {
-            connectionState = 'disconnected';
-            setConnecting(false);
-            updateFlashButtonStates();
+            setConnState('disconnected');
             const msg = err instanceof Error ? err.message : 'Failed to connect to device';
             alert(msg);
         }
     });
-
-    btnDisconnect.addEventListener('click', async () => {
-        if (flasher) {
-            try { await flasher.cleanup(); } catch { /* ignore */ }
-            flasher = null;
-        }
-        connectionState = 'disconnected';
-        updateFlashButtonStates();
-        setConnected(false);
-        clearDeviceInfo();
-        resetFlash();
-    });
 }
 
 function handleAutoDisconnect(): void {
+    if (serialMonitor) {
+        void serialMonitor.disconnect().catch((error) => {
+            console.warn('Error during serial monitor disconnect:', error);
+        });
+        serialMonitor = null;
+        el('serial-connect-btn')?.classList.remove('hidden');
+        el('serial-disconnect-btn')?.classList.add('hidden');
+        const portLabel = el('terminal-port-label');
+        if (portLabel) portLabel.textContent = '● Monitor closed';
+    }
+
     flasher = null;
-    connectionState = 'disconnected';
-    updateFlashButtonStates();
-
-    const btnConnect = el('connect-btn');
-    const btnDisconnect = el('disconnect-btn');
-    const status = el('connection-status');
-    const msg = el('status-message');
-
-    btnConnect?.classList.remove('hidden');
-    btnDisconnect?.classList.add('hidden');
-    status?.classList.replace('connected', 'disconnected');
-    if (msg) msg.textContent = 'Not Connected';
-
+    setConnState('disconnected');
     clearDeviceInfo();
     resetFlash();
     showToast('Device disconnected — USB unplugged', 'info');
@@ -567,17 +557,11 @@ function setupHelpModal(): void {
 // ─── Toast ──────────────────────────────────────────────────────────────────
 
 function showToast(message: string, type: 'error' | 'success' | 'info' = 'info'): void {
-    let toast = el('toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.innerHTML = '<span id="toast-message"></span><button class="toast-close" id="toast-close">✕</button>';
-        document.body.appendChild(toast);
-        toast.querySelector('#toast-close')?.addEventListener('click', () => toast!.classList.remove('visible'));
-    }
-    const msg = document.getElementById('toast-message');
+    const toast = el('flash-toast');
+    if (!toast) return;
+    const msg = toast.querySelector<HTMLElement>('.flash-toast-msg');
     if (msg) msg.textContent = message;
-    toast.className = `toast toast-${type} visible`;
+    toast.className = `flash-toast flash-toast-${type} visible`;
     clearTimeout((toast as any)._t);
-    (toast as any)._t = setTimeout(() => toast!.classList.remove('visible'), 5000);
+    (toast as any)._t = setTimeout(() => toast.classList.remove('visible'), 5000);
 }

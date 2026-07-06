@@ -220,20 +220,19 @@
                             <span id="version-number">v2.1.0</span>
                             <h2 id="flash-section-title">Firmware Update</h2>
                         </div>
-                        <div class="flash-header-right">
-                            <button id="connect-btn" class="btn-connect">
-                                <span class="btn-connect-icon">●</span>
-                                <div class="btn-spinner"></div>
-                                <span class="btn-connect-label">CONNECT</span>
-                            </button>
-                            <button id="disconnect-btn" class="btn-disconnect hidden">
-                                <span class="btn-icon">⏏</span>
-                                <span>DISCONNECT</span>
-                            </button>
-                            <div class="flash-connection-status disconnected" id="connection-status">
-                                <div class="status-indicator"></div>
-                                <span id="status-message">Not Connected</span>
+                        <div class="flash-header-center">
+                            <div id="flash-toast" class="flash-toast">
+                                <span class="flash-toast-msg"></span>
+                                <button class="flash-toast-close" aria-label="Dismiss">✕</button>
                             </div>
+                        </div>
+                        <div class="flash-header-right">
+                            <button id="conn-btn" class="btn-conn" data-state="disconnected">
+                                <span class="conn-dot"></span>
+                                <div class="conn-spinner"></div>
+                                <span class="conn-label">CONNECT</span>
+                                <span class="conn-eject">⏏</span>
+                            </button>
                         </div>
                     </div>
 
