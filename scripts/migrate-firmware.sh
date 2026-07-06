@@ -9,7 +9,7 @@
 # Optional:     GITHUB_TOKEN env var to avoid rate-limiting (60 req/hr anon)
 #
 # Usage:
-#   cd /path/to/kb1-flash
+#   cd /path/to/kb1-studio
 #   bash scripts/migrate-firmware.sh
 # ---------------------------------------------------------------------------
 set -euo pipefail

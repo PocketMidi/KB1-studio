@@ -34,5 +34,5 @@
 
 ```bash
 cd /Volumes/Oyen2TB/xGIT_KB1/KB1/kb1-studio
-npm run dev   # → http://localhost:5174/KB1-flash/
+npm run dev   # → http://localhost:5174/kb1-studio/
 ```

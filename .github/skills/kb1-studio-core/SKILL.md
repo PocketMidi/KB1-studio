@@ -14,7 +14,7 @@ KB1 Studio is a **browser-only web app** (no server, no framework) that provides
    normalize levels, export as `.pti` Beat-Slice instrument for Polyend Tracker Mini.
 2. **Flash Tool** — flash KB1 firmware via Web Serial API, monitor serial output.
 
-Served at `http://localhost:5174/KB1-flash/` during development.
+Served at `http://localhost:5174/kb1-studio/` during development.
 
 ### Tech Stack
 - **Vite 7.3.5 + TypeScript** — vanilla JS/TS, no Vue/React

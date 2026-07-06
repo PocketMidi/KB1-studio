@@ -1,11 +1,11 @@
 #!/bin/bash
-# KB1 Flash Tool - GitHub Repository Setup Script
-# Repository: https://github.com/PocketMidi/KB1-flash
+# KB1 Studio - GitHub Repository Setup Script
+# Repository: https://github.com/PocketMidi/KB1-studio
 
-REPO_URL="https://github.com/PocketMidi/KB1-flash.git"
+REPO_URL="https://github.com/PocketMidi/KB1-studio.git"
 GITHUB_USER="PocketMidi"
 
-echo "🚀 KB1 Flash Tool - GitHub Setup"
+echo "🚀 KB1 Studio - GitHub Setup"
 echo "================================"
 echo "Repository: $REPO_URL"
 echo ""
@@ -25,7 +25,7 @@ fi
 if [ -z "$(git log 2>/dev/null)" ]; then
     echo "📝 Step 2: Creating initial commit..."
     git add .
-    git commit -m "Initial commit - KB1 Flash Tool v1.0.0"
+    git commit -m "Initial commit - KB1 Studio"
     echo "✅ Initial commit created"
     echo ""
 else
@@ -37,8 +37,8 @@ else
         read -p "Commit changes now? (y/n): " COMMIT_NOW
         if [ "$COMMIT_NOW" = "y" ]; then
             git add .
-            read -p "Commit message (or press Enter for 'Update KB1 Flash Tool'): " COMMIT_MSG
-            COMMIT_MSG=${COMMIT_MSG:-"Update KB1 Flash Tool"}
+            read -p "Commit message (or press Enter for 'Update KB1 Studio'): " COMMIT_MSG
+            COMMIT_MSG=${COMMIT_MSG:-"Update KB1 Studio"}
             git commit -m "$COMMIT_MSG"
             echo "✅ Changes committed"
         fi
@@ -50,11 +50,11 @@ fi
 echo "📝 Step 3: Connect to GitHub"
 echo ""
 echo "Make sure you've created the repository on GitHub:"
-echo "   👉 https://github.com/PocketMidi/KB1-flash"
+echo "   👉 https://github.com/PocketMidi/KB1-studio"
 echo ""
 echo "If not created yet:"
 echo "   1. Go to: https://github.com/new"
-echo "   2. Name: KB1-flash"
+echo "   2. Name: KB1-studio"
 echo "   3. Owner: PocketMidi"
 echo "   4. Visibility: Public"
 echo "   5. DO NOT initialize with README/license"
@@ -114,19 +114,19 @@ echo "Next Steps:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "1️⃣  Enable GitHub Pages:"
-echo "   https://github.com/PocketMidi/KB1-flash/settings/pages"
+echo "   https://github.com/PocketMidi/KB1-studio/settings/pages"
 echo ""
 echo "   Under 'Build and deployment':"
 echo "   - Source: Select 'GitHub Actions'"
 echo "   - This auto-saves, no Save button needed"
 echo ""
 echo "2️⃣  Watch deployment:"
-echo "   https://github.com/PocketMidi/KB1-flash/actions"
+echo "   https://github.com/PocketMidi/KB1-studio/actions"
 echo ""
 echo "   Wait ~1-2 minutes for green checkmark ✓"
 echo ""
 echo "3️⃣  Visit your live site:"
-echo "   🌐 https://PocketMidi.github.io/KB1-flash/"
+echo "   🌐 https://PocketMidi.github.io/KB1-studio/"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
