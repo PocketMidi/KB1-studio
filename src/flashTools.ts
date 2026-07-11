@@ -167,10 +167,12 @@ function updateFlashButtonStates(): void {
         : connecting ? 'Connecting…' : !hasLocalFile ? 'Upload a firmware file first' : '';
 
     flashGitHubBtn.classList.toggle('btn-disabled', githubDisabled);
+    flashGitHubBtn.classList.toggle('btn-ready', !githubDisabled);
     if (githubReason) flashGitHubBtn.setAttribute('data-disabled-reason', githubReason);
     else flashGitHubBtn.removeAttribute('data-disabled-reason');
 
     flashLocalBtn.classList.toggle('btn-disabled', localDisabled);
+    flashLocalBtn.classList.toggle('btn-ready', !localDisabled);
     if (localReason) flashLocalBtn.setAttribute('data-disabled-reason', localReason);
     else flashLocalBtn.removeAttribute('data-disabled-reason');
 }
@@ -178,19 +180,25 @@ function updateFlashButtonStates(): void {
 // ─── Device Info ────────────────────────────────────────────────────────────
 
 async function loadDeviceInfo(): Promise<void> {
-    // Device chip info is not directly readable post-connection;
-    // populate known static values and load NVS data.
+    // Populate static values first, then enrich with live device info
     const set = (id: string, v: string) => { const e = el(id); if (e) e.textContent = v; };
     set('device-name', 'KB1');
     set('device-chip-type', 'ESP32-S3');
-    set('device-mac', '—');
     set('device-flash-size', '8 MB');
-    set('device-latest-firmware', latestVersion || '—');
     // Firmware version is detected from serial output — show placeholder until detected
     const banner = el('firmware-version-banner');
     const versionEl = el('device-firmware-version');
     if (versionEl) versionEl.textContent = '—';
     if (banner) banner.classList.remove('has-version');
+
+    // Read live chip description from bootloader
+    if (flasher) {
+        const info = await flasher.getDeviceInfo();
+        if (info) {
+            set('device-chip-type', info.chipDescription || 'ESP32-S3');
+        }
+    }
+
     await loadNVSData();
 }
 
@@ -216,8 +224,8 @@ async function loadNVSData(): Promise<void> {
 }
 
 function clearDeviceInfo(): void {
-    ['device-name', 'device-chip-type', 'device-mac', 'device-flash-size',
-        'device-latest-firmware', 'device-firmware-version', 'nvs-bat-pct', 'nvs-bat-ble-on-ms',
+    ['device-name', 'device-chip-type', 'device-flash-size',
+        'device-firmware-version', 'nvs-bat-pct', 'nvs-bat-ble-on-ms',
         'nvs-bat-ble-off-ms', 'nvs-bat-disch-ms', 'nvs-bat-cal-time',
         'nvs-is-charging', 'nvs-usb-boot'].forEach(id => {
             const e = el(id);
@@ -288,22 +296,23 @@ async function loadGitHubReleases(): Promise<void> {
         latestVersion = releases[0].version;
         if (versionNumber) versionNumber.textContent = latestVersion;
 
+        const displayReleases = releases.slice(0, 10);
         releasesList.innerHTML = '';
-        releases.forEach((release, i) => {
+        displayReleases.forEach((release, i) => {
             const item = document.createElement('div');
             item.className = 'release-list-item';
             item.dataset.index = String(i);
             item.innerHTML = `
                 <div class="release-version">${release.name}${i === 0 ? ' <span class="release-badge">Latest</span>' : ''}</div>
                 <div class="release-meta">${new Date(release.date).toLocaleDateString()}</div>`;
-            item.addEventListener('click', () => selectRelease(item, i, releases));
+            item.addEventListener('click', () => selectRelease(item, i, displayReleases));
             releasesList.appendChild(item);
         });
 
         releasesLoading.style.display = 'none';
         releasesList.style.display = 'block';
         flashGitHubBtn.style.display = 'block';
-        (window as any).githubReleases = releases;
+        (window as any).githubReleases = displayReleases;
     } catch (err) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         releasesLoading.innerHTML = `<p>Failed to load releases: ${msg}</p>`;
@@ -311,9 +320,14 @@ async function loadGitHubReleases(): Promise<void> {
 }
 
 function selectRelease(element: HTMLElement, index: number, releases: FirmwareRelease[]): void {
+    const alreadySelected = element.classList.contains('selected');
     document.querySelectorAll('.release-list-item').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    (window as any).selectedRelease = releases[index];
+    if (alreadySelected) {
+        (window as any).selectedRelease = null;
+    } else {
+        element.classList.add('selected');
+        (window as any).selectedRelease = releases[index];
+    }
     updateFlashButtonStates();
 }
 
@@ -459,9 +473,57 @@ function showComplete(): void {
             if (fill) fill.style.width = '100%';
         }
     });
-    showToast('Firmware update complete! Device is ready.', 'success');
+    showToast('Firmware update complete! Reconnecting…', 'success');
     el('flash-complete')?.classList.remove('hidden');
-    loadNVSData();
+
+    // Auto-reconnect after flash: device needs ~3s to boot before bootloader is ready
+    setTimeout(() => void autoReconnectAfterFlash(), 3000);
+}
+
+async function autoReconnectAfterFlash(): Promise<void> {
+    if (!flasher) flasher = new KB1Flasher();
+    flasher.onStatus((s: FlashStatus) => updateFlashUI(s));
+    flasher.onDisconnect(handleAutoDisconnect);
+
+    try {
+        const found = await flasher.reuseGrantedPort();
+        if (!found) return; // port no longer available — user will reconnect manually
+
+        await flasher.connectToDevice();
+        await loadDeviceInfo();
+        await flasher.resetToFirmware();
+
+        void flasher.readBootBanner().then(version => {
+            if (!version) return;
+            const versionEl = el('device-firmware-version');
+            const banner = el('firmware-version-banner');
+            if (versionEl) versionEl.textContent = `v${version}`;
+            if (banner) banner.classList.add('has-version');
+        });
+
+        resetProgressUI();
+        setConnState('connected');
+        showToast('Reconnected — running new firmware.', 'success');
+    } catch {
+        // Silent — user can reconnect manually if needed
+        setConnState('disconnected');
+    }
+}
+
+function resetProgressUI(): void {
+    el('flash-complete')?.classList.add('hidden');
+    el('flash-error')?.classList.add('hidden');
+    const pf = el('progress-fill');
+    const pp = el('progress-percent');
+    const pm = el('progress-message');
+    if (pf) { pf.style.width = '0%'; pf.classList.remove('success'); }
+    if (pp) pp.textContent = '0%';
+    if (pm) pm.textContent = 'Select a firmware version or upload a .bin file to begin';
+    document.querySelectorAll<HTMLElement>('.step').forEach(step => {
+        step.classList.remove('active', 'complete');
+        const fill = step.querySelector<HTMLElement>('.step-progress-fill');
+        if (fill) fill.style.width = '0%';
+    });
 }
 
 function showError(message: string): void {

@@ -2216,34 +2216,21 @@ body {
 }
 
 .btn-conn[data-state="connected"] {
-    background: transparent;
-    color: var(--text-secondary);
-    border-color: var(--border-strong);
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    background: var(--success);
+    color: #fff;
+    border-color: transparent;
 }
 
 .btn-conn[data-state="connected"]:hover {
-    background: rgba(234, 234, 234, 0.05);
-    border-color: rgba(234, 234, 234, 0.4);
+    background: #6ec47c;
+    border-color: transparent;
 }
 
-/* dot: visible only when connected */
-.conn-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
+/* dot: hidden in connected state — green bg already communicates it */
 .btn-conn[data-state="disconnected"] .conn-dot,
-.btn-conn[data-state="connecting"] .conn-dot {
-    display: none;
-}
-
+.btn-conn[data-state="connecting"] .conn-dot,
 .btn-conn[data-state="connected"] .conn-dot {
-    background: var(--success);
-    box-shadow: 0 0 5px var(--success);
+    display: none;
 }
 
 /* spinner: visible only when connecting */
@@ -2262,14 +2249,15 @@ body {
     display: block;
 }
 
-/* eject: visible only when connected, dim until hover */
+/* eject: visible only when connected, white, dims slightly until hover */
 .conn-eject {
     display: none;
-    opacity: 0.35;
+    opacity: 0.65;
     font-size: 0.85em;
     margin-left: 1px;
     transition: opacity 0.15s;
     line-height: 1;
+    color: #fff;
 }
 
 .btn-conn[data-state="connected"] .conn-eject {
@@ -2277,7 +2265,7 @@ body {
 }
 
 .btn-conn[data-state="connected"]:hover .conn-eject {
-    opacity: 0.85;
+    opacity: 1;
 }
 
 /* ── Header-centred inline toast ───────────────────────────────────── */
@@ -2460,6 +2448,34 @@ body {
 .btn-secondary.btn-disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+@keyframes btn-ready-pulse {
+    0% {
+        background: #8ba793;
+        box-shadow: 0 0 0 0 rgba(139, 167, 147, 0);
+    }
+
+    50% {
+        background: #a8c4b0;
+        box-shadow: 0 0 0 6px rgba(139, 167, 147, 0.35);
+    }
+
+    100% {
+        background: #8ba793;
+        box-shadow: 0 0 0 0 rgba(139, 167, 147, 0);
+    }
+}
+
+.btn-primary.btn-ready,
+.btn-secondary.btn-ready {
+    animation: btn-ready-pulse 1.8s ease-in-out infinite;
+}
+
+.btn-primary.btn-ready:hover,
+.btn-secondary.btn-ready:hover {
+    background: #a8c4b0;
+    animation: none;
 }
 
 .btn-secondary {

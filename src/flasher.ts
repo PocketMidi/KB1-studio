@@ -132,6 +132,20 @@ export class KB1Flasher {
     }
 
     /**
+     * Re-acquire the previously granted port without showing the picker.
+     * Returns true if a port was found and assigned.
+     */
+    async reuseGrantedPort(): Promise<boolean> {
+        const ports = await navigator.serial.getPorts();
+        const espPort = ports.find(p => p.getInfo().usbVendorId === ESPRESSIF_VENDOR_ID);
+        if (!espPort) return false;
+        this.port = espPort;
+        this.disconnectNotified = false;
+        this.setupDisconnectListener();
+        return true;
+    }
+
+    /**
      * Connect to ESP32 bootloader (public method for initial connection)
      */
     async connectToDevice(): Promise<void> {
@@ -379,6 +393,21 @@ export class KB1Flasher {
      */
     getNVSBackup(): Uint8Array | null {
         return this.nvsBackup;
+    }
+
+    /**
+     * Read MAC address and chip description from the connected bootloader.
+     * Must be called after connectToDevice() and before resetToFirmware().
+     */
+    async getDeviceInfo(): Promise<{ mac: string; chipDescription: string } | null> {
+        if (!this.loader) return null;
+        try {
+            const mac = await this.loader.chip.readMac(this.loader);
+            const chipDesc = await this.loader.chip.getChipDescription(this.loader);
+            return { mac, chipDescription: chipDesc };
+        } catch {
+            return null;
+        }
     }
 
     /**
