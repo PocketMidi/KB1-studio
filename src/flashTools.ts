@@ -109,6 +109,15 @@ function setupConnectionButtons(): void {
             await loadDeviceInfo();
             await flasher.resetToFirmware();
 
+            // Read boot banner in background — device is already outputting it after reset
+            void flasher.readBootBanner().then(version => {
+                if (!version) return;
+                const versionEl = el('device-firmware-version');
+                const banner = el('firmware-version-banner');
+                if (versionEl) versionEl.textContent = `v${version}`;
+                if (banner) banner.classList.add('has-version');
+            });
+
             setConnState('connected');
         } catch (err) {
             setConnState('disconnected');
@@ -177,6 +186,11 @@ async function loadDeviceInfo(): Promise<void> {
     set('device-mac', '—');
     set('device-flash-size', '8 MB');
     set('device-latest-firmware', latestVersion || '—');
+    // Firmware version is detected from serial output — show placeholder until detected
+    const banner = el('firmware-version-banner');
+    const versionEl = el('device-firmware-version');
+    if (versionEl) versionEl.textContent = '—';
+    if (banner) banner.classList.remove('has-version');
     await loadNVSData();
 }
 
@@ -203,12 +217,13 @@ async function loadNVSData(): Promise<void> {
 
 function clearDeviceInfo(): void {
     ['device-name', 'device-chip-type', 'device-mac', 'device-flash-size',
-        'device-latest-firmware', 'nvs-bat-pct', 'nvs-bat-ble-on-ms',
+        'device-latest-firmware', 'device-firmware-version', 'nvs-bat-pct', 'nvs-bat-ble-on-ms',
         'nvs-bat-ble-off-ms', 'nvs-bat-disch-ms', 'nvs-bat-cal-time',
         'nvs-is-charging', 'nvs-usb-boot'].forEach(id => {
             const e = el(id);
             if (e) e.textContent = '—';
         });
+    el('firmware-version-banner')?.classList.remove('has-version');
 }
 
 // ─── File Upload ─────────────────────────────────────────────────────────────
@@ -508,6 +523,14 @@ function setupSerialMonitor(): void {
                 div.textContent = line;
                 serialOutput.appendChild(div);
                 if (autoScrollCheckbox?.checked) serialOutput.scrollTop = serialOutput.scrollHeight;
+                // Detect firmware version from boot banner: "KB1 FIRMWARE v2.2.0"
+                const vMatch = line.match(/KB1 FIRMWARE v(\d+\.\d+\.\d+)/i);
+                if (vMatch) {
+                    const versionEl = el('device-firmware-version');
+                    const banner = el('firmware-version-banner');
+                    if (versionEl) versionEl.textContent = `v${vMatch[1]}`;
+                    if (banner) banner.classList.add('has-version');
+                }
             });
             await serialMonitor.connect();
             serialConnectBtn.classList.add('hidden');

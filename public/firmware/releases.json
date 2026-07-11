@@ -1,5 +1,12 @@
 [
   {
+    "version": "2.2.0",
+    "name": "Version 2.2.0",
+    "date": "2026-07-11",
+    "filename": "KB1-firmware-v2.2.0.bin",
+    "size": 1101152
+  },
+  {
     "version": "2.1.0",
     "name": "Version 2.1.0",
     "date": "2026-06-13",

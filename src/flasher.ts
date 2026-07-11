@@ -408,6 +408,49 @@ export class KB1Flasher {
     }
 
     /**
+     * After resetToFirmware(), briefly open the port at 115200 to read the
+     * boot banner and extract the firmware version string.
+     * Returns e.g. "2.2.0" or null if not detected within the timeout.
+     */
+    async readBootBanner(timeoutMs = 3000): Promise<string | null> {
+        if (!this.port) return null;
+        try {
+            await this.port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none' });
+            const reader = this.port.readable!.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let version: string | null = null;
+            const deadline = Date.now() + timeoutMs;
+            try {
+                while (Date.now() < deadline) {
+                    const timeout = new Promise<{ value: undefined; done: true }>(res =>
+                        setTimeout(() => res({ value: undefined, done: true }), 200)
+                    );
+                    const result = await Promise.race([reader.read(), timeout]);
+                    if (result.done) {
+                        if (version) break; // got what we needed
+                        continue;
+                    }
+                    buffer += decoder.decode(result.value);
+                    const match = buffer.match(/KB1 FIRMWARE v(\d+\.\d+\.\d+)/i);
+                    if (match) { version = match[1]; break; }
+                    // trim buffer to avoid unbounded growth
+                    if (buffer.length > 4096) buffer = buffer.slice(-2048);
+                }
+            } finally {
+                reader.cancel();
+                reader.releaseLock();
+            }
+            await this.port.close();
+            return version;
+        } catch {
+            // Port may already be open or unavailable — swallow silently
+            try { await this.port.close(); } catch { /* ignore */ }
+            return null;
+        }
+    }
+
+    /**
      * Disconnect from device
      */
     private async disconnect(): Promise<void> {
