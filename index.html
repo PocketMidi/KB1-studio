@@ -9,31 +9,18 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400&family=Roboto+Mono:wght@400&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css" />
 </head>
 
 <body>
-    <!-- Browser Compatibility Warning -->
-    <div id="browser-warning" class="warning hidden">
-        <strong>Browser Not Supported</strong>
-        <p>This tool requires Chrome, Edge, or Opera on desktop.</p>
-        <p>Web Serial API is not available in this browser.</p>
-    </div>
-
-    <!-- Mobile Warning -->
-    <div class="mobile-warning">
-        <strong>Desktop Only</strong>
-        <p>KB1 Studio requires a desktop browser (Chrome, Edge, or Opera) for USB and audio file access.</p>
-    </div>
-
     <!-- Main App Container -->
     <div id="app" class="app-container">
         <!-- Left Sidebar -->
         <aside class="sidebar" id="main-sidebar">
-            <!-- Logo -->
-            <div class="logo-container">
+            <!-- Logo / Home Button -->
+            <button class="logo-container" id="logo-home-btn" title="Home" aria-label="Go to guide">
                 <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 132">
                     <defs>
                         <style>
@@ -58,10 +45,19 @@
                         <tspan x="0" y="0">pocket midi</tspan>
                     </text>
                 </svg>
+            </button>
+
+            <!-- Guide Sidebar -->
+            <div class="sidebar-content" id="guide-sidebar-content">
+                <!-- Simple / Advanced mode toggle -->
+                <div class="guide-mode-toggle">
+                    <button class="guide-mode-btn active" data-mode="simple">Quick Start</button>
+                    <button class="guide-mode-btn" data-mode="advanced">Complete Guide</button>
+                </div>
             </div>
 
             <!-- Flash Tools Sidebar -->
-            <div class="sidebar-content" id="flash-sidebar-content">
+            <div class="sidebar-content hidden" id="flash-sidebar-content">
                 <nav class="flash-sidebar-nav">
                     <button class="flash-sidebar-btn active" data-section="update">
                         <span class="sidebar-icon">⬢</span>
@@ -88,7 +84,7 @@
             </div>
 
             <!-- Instrument Builder Sidebar -->
-            <div class="sidebar-content hidden" id="instrument-sidebar-content">
+            <div class="sidebar-content hidden" id="instrument-sidebar-content" data-originally-hidden>
                 <!-- Instrument Name -->
                 <div class="instrument-name-field">
                     <input type="text" id="instrument-name" class="instrument-name-input" placeholder="Untitled"
@@ -198,6 +194,14 @@
                     </button>
                 </nav>
             </div>
+
+            <div class="sidebar-sponsor">
+                <span class="sidebar-sponsor-label">Open-source hardware partially sponsored by</span>
+                <a class="sidebar-sponsor-link" href="https://www.pcbway.com/" target="_blank" rel="noopener sponsored"
+                    aria-label="Visit PCBWay">
+                    <img class="sidebar-sponsor-logo" src="/pcbway.png" alt="PCBWay" />
+                </a>
+            </div>
         </aside>
 
         <!-- Right Content Area -->
@@ -205,15 +209,232 @@
             <!-- Top Navigation Bar -->
             <header class="top-nav">
                 <nav class="nav-tabs">
-                    <button class="nav-tab active" data-tab="flash">Flash Tools</button>
+                    <button class="nav-tab active" data-tab="guide">User Guide</button>
+                    <button class="nav-tab" data-tab="flash">Flash Tools</button>
                     <button class="nav-tab" data-tab="instrument">Instrument Builder</button>
                 </nav>
             </header>
 
+            <aside id="browser-warning" class="compatibility-notice hidden" aria-live="polite">
+                <strong id="browser-warning-title"></strong>
+                <p id="browser-warning-summary"></p>
+                <ul id="browser-warning-features"></ul>
+            </aside>
+
             <!-- Main Content Area -->
             <main class="content-area">
+                <!-- GUIDE TAB -->
+                <div class="tab-content active" id="tab-guide">
+                    <div class="guide-scroll-page" id="guide-scroll-page">
+
+                        <!-- ═══ Section 1: Getting Started ═══ -->
+                        <section class="guide-scroll-section" id="guide-setup">
+
+                            <section class="guide-top-panel">
+                                <div class="guide-browser-bar">
+                                    <h3 class="guide-panel-title">KB1 layout</h3>
+                                </div>
+                                <div class="guide-diagram-pane" id="kb1-diagram-container">
+                                    <!-- KB1 hardware diagram injected by JS -->
+                                </div>
+                            </section>
+
+                            <div class="guide-content-row">
+                                <section class="guide-content-panel" id="guide-charging-panel"
+                                    data-highlights="power-indicator,charge-indicator,charging-hardware">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Basic Charging</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <div class="callout callout--warn">
+                                                FIRST. Power it on. <br>
+                                                That's right, turn it on first.
+                                            </div>
+                                        </div>
+                                        <div class="guide-section">
+                                            <ol class="step-list">
+                                                <li class="step-item"><span class="step-num">1</span><span> When
+                                                        switched <strong>ON,</strong> the <strong>Power
+                                                            Indicator</strong> (yellow LED)
+                                                        will light up, and the start-up sequence of LEDs will bounce
+                                                        across the top.</span></li>
+                                                <li class="step-item"><span class="step-num">2</span><span>Plug in the
+                                                        USB-C power cord. The <strong>Charge Indicator</strong> (red
+                                                        LED) should begin blinking. (If it doesn't blink, unplug USB,
+                                                        wait 5 seconds, reconnect.)</span></li>
+
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+
+                        </section><!-- #guide-setup -->
+
+                        <!-- ═══ Advanced Section: Smart Charging + Bluetooth + Configurator (advanced-only) ═══ -->
+                        <section class="guide-scroll-section guide-advanced-row advanced-only"
+                            id="guide-advanced-panels">
+                            <div class="guide-content-row">
+
+                                <!-- Smart Charging -->
+                                <section class="guide-content-panel" id="guide-smart-charging"
+                                    data-highlights="power-indicator,charge-indicator,charging-hardware">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Smart Charging</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p> For charging progress to be detected, saved, and accumulated,
+                                                a <strong> Computer Port</strong>
+                                                is required.</p>
+                                        </div>
+                                        <div class="guide-section">
+                                            <ol class="step-list">
+                                                <li class="step-item"><span class="step-num">1</span><span> When
+                                                        switched <strong>ON,</strong> the <strong>Power
+                                                            Indicator</strong> (yellow LED)
+                                                        will light up, and the start-up sequence of LEDs will bounce
+                                                        across the top.</span></li>
+
+                                                <li class="step-item"><span class="step-num">2</span><span>Connect USB-C
+                                                        to a computer port. After 30 seconds (if no keys are pressed),
+                                                        the pink/blue LEDs will begin pulsing
+                                                        to confirm tracked charging is active,
+                                                        and will stop when the estimated charge time is complete,
+                                                        or when key press is detected.</span></li>
+                                            </ol>
+                                        </div>
+
+                                    </div>
+                                </section>
+
+                                <!-- Bluetooth -->
+                                <section class="guide-content-panel" id="guide-ble-panel"
+                                    data-highlights="lever1,lever2,bluetooth-hardware">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Bluetooth</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p>Bluetooth is off by default to maximize battery life.<br>
+                                                To enable Bluetooth, follow these steps:</p>
+                                        </div>
+                                        <div class="guide-section">
+
+                                            <ol class="step-list">
+                                                <li class="step-item"><span class="step-num">1</span><span>Squeeze both
+                                                        levers toward each other and hold
+                                                        <strong>3 seconds</strong>.</span></li>
+                                                <li class="step-item"><span class="step-num">2</span><span>Octave LEDs
+                                                        light, then pink/blue LEDs pulse with increasing speed.</span>
+                                                </li>
+                                                <li class="step-item"><span class="step-num">3</span><span>
+                                                        <strong>Release</strong> when
+                                                        all LEDs turn off — Bluetooth enabled. <br>
+
+                                                    </span></li>
+                                            </ol>
+
+                                            <div class="callout callout--tip">
+                                                Use the same gesture to disable Bluetooth. <br>
+                                                Bluetooth is automatically disabled when entering sleep mode.
+                                            </div>
+                                </section>
+
+                                <!-- Configurator -->
+                                <section class="guide-content-panel" id="guide-configurator-panel">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Configurator</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p>
+                                                Once Bluetooth is enabled, follow these
+                                                steps in the
+                                                <a href="https://pocketmidi.github.io/KB1-config" target="_blank"
+                                                    rel="noopener">KB1 Configurator</a> web app:
+                                            </p>
+                                        </div>
+                                        <div class="guide-section">
+
+                                            <ol class="step-list">
+                                                <li class="step-item"><span class="step-num">1</span><span>Tap the KB1
+                                                        logo → select your device from the pairing dialog.</span></li>
+                                                <li class="step-item"><span class="step-num">2</span><span>Load presets,
+                                                        explore settings, try new combos, then,
+                                                        tap the amber arrow to upload. Repeat.
+                                                    </span>
+                                                </li>
+                                            </ol>
+
+                                            <div class="callout callout--tip">
+                                                <strong>Designed for mobile:<br>
+                                                </strong> Android — Chrome, Edge, Opera.<br>
+                                                iOS — <a href="https://vbrowser.co" target="_blank" rel="noopener">V
+                                                    Browser</a>
+                                                (Safari has no Web Bluetooth).
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                            </div>
+                        </section><!-- #guide-advanced-panels -->
+
+                        <!-- ═══ Section 2: Tracker Setup ═══ -->
+                        <section class="guide-scroll-section" id="guide-tracker">
+
+                            <section class="guide-top-panel">
+                                <div class="guide-browser-bar">
+                                    <h3 class="guide-panel-title">Tracker Setup</h3>
+                                </div>
+                                <div class="guide-diagram-pane" id="kb1-diagram2-container">
+                                    <!-- Tracker MIDI diagram injected by JS -->
+                                </div>
+                            </section>
+
+                            <div class="guide-content-row">
+                                <section class="guide-content-panel" id="guide-tracker-settings"
+                                    data-tracker-highlights>
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Tracker Settings</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p>On the Tracker Mini open <strong>Menu → Config → MIDI</strong></p>
+                                            <p>Set:</p>
+                                            <ol class="step-list" style="margin-top:8px">
+                                                <li class="step-item"><span class="step-num">1</span><span>Notes in to
+                                                        <strong>MIDI In jack</strong></span></li>
+                                                <li class="step-item"><span class="step-num">2</span><span>Notes in
+                                                        channel to <strong>CH1</strong></span></li>
+                                                <li class="step-item"><span class="step-num">3</span><span>CC in to
+                                                        <strong>MIDI In jack</strong></span></li>
+                                                <li class="step-item"><span class="step-num">4</span><span>CC in channel
+                                                        to <strong>CH1</strong></span></li>
+                                                <li class="step-item"><span class="step-num">5</span><span>Middle C to
+                                                        <strong>C-4</strong></span></li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+
+                        </section><!-- #guide-tracker -->
+
+                        <aside class="mobile-studio-note" aria-label="Desktop KB1 Studio tools">
+                            <span class="mobile-studio-note-title">More in KB1 Studio</span>
+                            <p>The desktop version includes firmware updates, device diagnostics, a serial monitor,
+                                and the Instrument Builder. Open this site in a desktop Chromium browser to use the
+                                full toolset.</p>
+                        </aside>
+
+                    </div><!-- .guide-scroll-page -->
+                </div><!-- #tab-guide -->
+
                 <!-- FLASH TOOLS TAB -->
-                <div class="tab-content active" id="tab-flash">
+                <div class="tab-content" id="tab-flash">
                     <!-- Persistent connect header -->
                     <div class="flash-tab-header">
                         <div class="flash-header-left">

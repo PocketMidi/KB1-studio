@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1199.39 577.12">
+  <!-- Generator: Adobe Illustrator 30.7.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 114)  -->
+  <defs>
+    <style>
+      .st0, .st1, .st2, .st3, .st4, .st5, .st6, .st7, .st8, .st9, .st10, .st11, .st12, .st13, .st14, .st15, .st16, .st17, .st18, .st19, .st20, .st21, .st22, .st23, .st24, .st25, .st26, .st27, .st28, .st29 {
+        isolation: isolate;
+      }
+
+      .st0, .st1, .st2, .st3, .st4, .st5, .st6, .st7, .st8, .st11, .st12, .st13, .st14, .st17, .st18, .st19, .st21, .st22, .st23, .st24, .st25, .st26, .st27, .st28, .st29 {
+        font-family: Roboto-Regular, Roboto;
+        font-size: 24.06px;
+      }
+
+      .st0, .st1, .st2, .st3, .st4, .st6, .st11, .st12, .st14 {
+        fill: #b7ab69;
+      }
+
+      .st0, .st28 {
+        letter-spacing: -.02em;
+      }
+
+      .st1, .st27 {
+        letter-spacing: -.02em;
+      }
+
+      .st2, .st29 {
+        letter-spacing: -.04em;
+      }
+
+      .st3, .st22 {
+        letter-spacing: .02em;
+      }
+
+      .st4, .st21 {
+        letter-spacing: .02em;
+      }
+
+      .st5 {
+        letter-spacing: 0em;
+      }
+
+      .st5, .st7, .st8, .st10, .st13, .st15, .st16, .st17, .st18, .st19, .st20, .st21, .st22, .st23, .st24, .st25, .st26, .st27, .st28, .st29 {
+        fill: #838383;
+      }
+
+      .st6, .st23 {
+        letter-spacing: .04em;
+      }
+
+      .st7 {
+        letter-spacing: .16em;
+      }
+
+      .st8 {
+        letter-spacing: .14em;
+      }
+
+      .st30 {
+        stroke-width: 3.16px;
+      }
+
+      .st30, .st31, .st32 {
+        stroke: #374051;
+      }
+
+      .st30, .st31, .st32, .st33, .st34 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .st31 {
+        stroke-width: 3px;
+      }
+
+      .st32 {
+        stroke-width: 3.01px;
+      }
+
+      .st10, .st15, .st16, .st20 {
+        font-family: Roboto-Bold, Roboto;
+        font-size: 28.42px;
+        font-weight: 700;
+      }
+
+      .st11 {
+        letter-spacing: -.1em;
+      }
+
+      .st12 {
+        letter-spacing: -.1em;
+      }
+
+      .st33 {
+        stroke-width: 3.77px;
+      }
+
+      .st33, .st34 {
+        stroke: #7c7c7c;
+      }
+
+      .st34 {
+        stroke-width: 3.12px;
+      }
+
+      .st15 {
+        letter-spacing: .04em;
+      }
+
+      .st16 {
+        letter-spacing: .04em;
+      }
+
+      .st17 {
+        letter-spacing: .08em;
+      }
+
+      .st18 {
+        letter-spacing: .06em;
+      }
+
+      .st19 {
+        letter-spacing: .06em;
+      }
+
+      .st20 {
+        letter-spacing: .06em;
+      }
+
+      .st24 {
+        letter-spacing: .03em;
+      }
+
+      .st35 {
+        fill: #8ba793;
+      }
+
+      .st25 {
+        letter-spacing: -.08em;
+      }
+
+      .st26 {
+        letter-spacing: -.06em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_11" data-name="Layer_1">
+    <g class="st9">
+      <text class="st13" transform="translate(375.13 79.32)"><tspan x="0" y="0">Clock in</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(937.54 79.32)"><tspan x="0" y="0">Internal</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st17" transform="translate(981.2 125.8)"><tspan x="0" y="0">Off</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st17" transform="translate(981.2 218.06)"><tspan x="0" y="0">Off</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(1004.7803 542.04)"><tspan x="0" y="0">0</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(937.54 172.5)"><tspan x="0" y="0">Internal</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st27" transform="translate(872.36 357.49)"><tspan x="0" y="0">MIDI</tspan></text>
+      <text class="st22" transform="translate(920.3 357.49)"><tspan x="0" y="0" xml:space="preserve"> Ou</tspan></text>
+      <text class="st17" transform="translate(957.5 357.49)"><tspan x="0" y="0">t</tspan></text>
+      <text class="st27" transform="translate(967.28 357.49)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st23" transform="translate(972.75 357.49)"><tspan x="0" y="0">j</tspan></text>
+      <text class="st21" transform="translate(979.46 357.49)"><tspan x="0" y="0">ack</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st23" transform="translate(30.67 79.32)"><tspan x="0" y="0">P</tspan></text>
+      <text class="st24" transform="translate(46.81 79.32)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st23" transform="translate(55.68 79.32)"><tspan x="0" y="0">oject </tspan></text>
+      <text class="st21" transform="translate(120.06 79.32)"><tspan x="0" y="0">Settings</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st10" transform="translate(24.28 24.4)"><tspan x="0" y="0">Config</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st16" transform="translate(493.3 24.4)"><tspan x="0" y="0">0</tspan></text>
+      <text class="st10" transform="translate(510.74 24.4)"><tspan x="0" y="0">m:</tspan></text>
+      <text class="st16" transform="translate(543.36 24.4)"><tspan x="0" y="0">00s</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st15" transform="translate(621.41 24.4)"><tspan x="0" y="0">II</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st20" transform="translate(669.37 24.4)"><tspan x="0" y="0">P4.000</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(30.67 124.91)"><tspan x="0" y="0">Gene</tspan></text>
+      <text class="st28" transform="translate(85.82 124.91)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st13" transform="translate(93.49 124.91)"><tspan x="0" y="0">al</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st22" transform="translate(30.67 172.22)"><tspan x="0" y="0">MIDI</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st28" transform="translate(30.67 217.8)"><tspan x="0" y="0">USB</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st19" transform="translate(30.67 264.24)"><tspan x="0" y="0">Met</tspan></text>
+      <text class="st21" transform="translate(76.6 264.24)"><tspan x="0" y="0">ro</tspan></text>
+      <text class="st18" transform="translate(99.43 264.24)"><tspan x="0" y="0">n</tspan></text>
+      <text class="st13" transform="translate(114.14 264.24)"><tspan x="0" y="0">ome</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st21" transform="translate(30.67 310.4)"><tspan x="0" y="0">Firmwa</tspan></text>
+      <text class="st5" transform="translate(113.08 310.4)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st22" transform="translate(121.48 310.4)"><tspan x="0" y="0">e</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st28" transform="translate(30.67 356.56)"><tspan x="0" y="0">Fn </tspan></text>
+      <text class="st13" transform="translate(61.75 356.56)"><tspan x="0" y="0">but</tspan></text>
+      <text class="st13" transform="translate(96.37 356.56)"><tspan x="0" y="0">t</tspan></text>
+      <text class="st13" transform="translate(103.99 356.56)"><tspan x="0" y="0">ons</tspan></text>
+      <text class="st27" transform="translate(143.39 356.56)"><tspan x="0" y="0" xml:space="preserve"> binding</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st23" transform="translate(30.67 402.61)"><tspan x="0" y="0">Info</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(375.13 125.8)"><tspan x="0" y="0">Clock out</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st29" transform="translate(375.13 172.5)"><tspan x="0" y="0">T</tspan></text>
+      <text class="st28" transform="translate(388.6 172.5)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st13" transform="translate(396.27 172.5)"><tspan x="0" y="0">anspo</tspan></text>
+      <text class="st21" transform="translate(462.25 172.5)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st13" transform="translate(470.98 172.5)"><tspan x="0" y="0">t in</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st27" transform="translate(375.13 218.06)"><tspan x="0" y="0">T</tspan></text>
+      <text class="st13" transform="translate(389.08 218.06)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st21" transform="translate(397.24 218.06)"><tspan x="0" y="0">an</tspan></text>
+      <text class="st13" transform="translate(424.56 218.06)"><tspan x="0" y="0">spo</tspan></text>
+      <text class="st21" transform="translate(464.17 218.06)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st13" transform="translate(472.9 218.06)"><tspan x="0" y="0">t out</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st21" transform="translate(375.13 264.65)"><tspan x="0" y="0">N</tspan></text>
+      <text class="st19" transform="translate(392.76 264.65)"><tspan x="0" y="0">ote</tspan></text>
+      <text class="st7" transform="translate(431.41 264.65)"><tspan x="0" y="0">s</tspan></text>
+      <text class="st13" transform="translate(447.67 264.65)"><tspan x="0" y="0">in</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st18" transform="translate(375.13 310.03)"><tspan x="0" y="0">Note</tspan></text>
+      <text class="st8" transform="translate(432.37 310.03)"><tspan x="0" y="0">s</tspan></text>
+      <text class="st13" transform="translate(448.15 310.03)"><tspan x="0" y="0">in </tspan></text>
+      <text class="st29" transform="translate(473.21 310.03)"><tspan x="0" y="0">channel</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(375.13 357.49)"><tspan x="0" y="0">MIDI out</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(375.13 403.72)"><tspan x="0" y="0">CC</tspan></text>
+      <text class="st25" transform="translate(406.45 403.72)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st13" transform="translate(410.48 403.72)"><tspan x="0" y="0">in</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st13" transform="translate(375.13 449.77)"><tspan x="0" y="0">CC</tspan></text>
+      <text class="st26" transform="translate(406.45 449.77)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st13" transform="translate(410.96 449.77)"><tspan x="0" y="0">in </tspan></text>
+      <text class="st29" transform="translate(436.02 449.77)"><tspan x="0" y="0">channel</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st22" transform="translate(375.13 496.57)"><tspan x="0" y="0">Middle</tspan></text>
+      <text class="st25" transform="translate(450.57 496.57)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st13" transform="translate(454.6 496.57)"><tspan x="0" y="0">C</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st21" transform="translate(1086.1583 496.57)"><tspan x="0" y="0">261.6 Hz</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st21" transform="translate(375.13 542.05)"><tspan x="0" y="0">Clock</tspan></text>
+      <text class="st26" transform="translate(437.53 542.05)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st22" transform="translate(442.05 542.05)"><tspan x="0" y="0">sync </tspan></text>
+      <text class="st23" transform="translate(500.06 542.05)"><tspan x="0" y="0">cor</tspan></text>
+      <text class="st24" transform="translate(537.4 542.05)"><tspan x="0" y="0">r</tspan></text>
+      <text class="st23" transform="translate(546.27 542.05)"><tspan x="0" y="0">ection</tspan></text>
+    </g>
+  </g>
+  <g id="Layer_5">
+    <g class="st9">
+      <text class="st0" transform="translate(974.86 310.03)"><tspan x="0" y="0">C</tspan></text>
+      <text class="st12" transform="translate(990.04 310.03)"><tspan x="0" y="0">H1</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st2" transform="translate(975.34 449.77)"><tspan x="0" y="0">C</tspan></text>
+      <text class="st12" transform="translate(990.04 449.77)"><tspan x="0" y="0">H1</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st11" transform="translate(1049.9203 449.77)"><tspan x="0" y="0">&lt;</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st6" transform="translate(981.04 496.57)"><tspan x="0" y="0">C</tspan></text>
+      <text class="st4" transform="translate(997.66 496.57)"><tspan x="0" y="0">-</tspan></text>
+      <text class="st14" transform="translate(1004.7803 496.57)"><tspan x="0" y="0">4</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st14" transform="translate(1049.9203 496.57)"><tspan x="0" y="0">&lt;</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st1" transform="translate(893.09 264.64)"><tspan x="0" y="0">MIDI </tspan></text>
+      <text class="st3" transform="translate(946.5 264.64)"><tspan x="0" y="0">In</tspan></text>
+      <text class="st1" transform="translate(967.28 264.64)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st6" transform="translate(972.75 264.64)"><tspan x="0" y="0">j</tspan></text>
+      <text class="st4" transform="translate(979.46 264.64)"><tspan x="0" y="0">ack</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st1" transform="translate(893.09 403.72)"><tspan x="0" y="0">MIDI </tspan></text>
+      <text class="st3" transform="translate(946.5 403.72)"><tspan x="0" y="0">In</tspan></text>
+      <text class="st1" transform="translate(967.28 403.72)"><tspan x="0" y="0"> </tspan></text>
+      <text class="st6" transform="translate(972.75 403.72)"><tspan x="0" y="0">j</tspan></text>
+      <text class="st4" transform="translate(979.46 403.72)"><tspan x="0" y="0">ack</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st11" transform="translate(1049.9203 310.03)"><tspan x="0" y="0">&lt;</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st1" transform="translate(1049.9203 264.64)"><tspan x="0" y="0">&lt;</tspan></text>
+    </g>
+    <g class="st9">
+      <text class="st1" transform="translate(1049.9203 403.72)"><tspan x="0" y="0">&lt;</tspan></text>
+    </g>
+  </g>
+  <g id="Layer_1_copy">
+    <rect class="st35" x="1124.17" y="2.66" width="26.98" height="17.39"/>
+    <rect class="st32" x="352.86" y="38.31" width="683.25" height="537.31"/>
+    <rect class="st31" x="359.53" y="47.05" width="670.5" height="45.32"/>
+    <rect class="st31" x="16.28" y="138.3" width="330.26" height="44.43"/>
+    <rect class="st34" x="1121.93" y="1.56" width="43.05" height="20.19"/>
+    <line class="st33" x1="1167.83" y1="6.92" x2="1167.83" y2="15.98"/>
+    <line class="st30" y1="37.82" x2="1199.39" y2="37.82"/>
+  </g>
+</svg>

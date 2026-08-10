@@ -4644,10 +4644,12 @@ function initTabNavigation() {
   const tabContents = document.querySelectorAll('.tab-content');
   const instrumentSidebarContent = document.getElementById('instrument-sidebar-content');
   const flashSidebarContent = document.getElementById('flash-sidebar-content');
+  const guideSidebarContent = document.getElementById('guide-sidebar-content');
 
   tabButtons.forEach((button) => {
     button.addEventListener('click', () => {
       const tabName = button.getAttribute('data-tab');
+      if (!tabName) return;
 
       tabButtons.forEach((btn) => btn.classList.remove('active'));
       button.classList.add('active');
@@ -4656,19 +4658,351 @@ function initTabNavigation() {
       const activeContent = document.getElementById(`tab-${tabName}`);
       if (activeContent) activeContent.classList.add('active');
 
-      if (instrumentSidebarContent && flashSidebarContent) {
-        if (tabName === 'instrument') {
-          instrumentSidebarContent.classList.remove('hidden');
-          flashSidebarContent.classList.add('hidden');
-          // Force reflow so canvas/JS-sized elements recalculate after display:flex
-          requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
-        } else if (tabName === 'flash') {
-          instrumentSidebarContent.classList.add('hidden');
-          flashSidebarContent.classList.remove('hidden');
+      // Update sidebar visibility
+      instrumentSidebarContent?.classList.add('hidden');
+      flashSidebarContent?.classList.add('hidden');
+      guideSidebarContent?.classList.add('hidden');
+
+      if (tabName === 'instrument') {
+        instrumentSidebarContent?.classList.remove('hidden');
+        // Force reflow so canvas/JS-sized elements recalculate after display:flex
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+      } else if (tabName === 'flash') {
+        flashSidebarContent?.classList.remove('hidden');
+      } else if (tabName === 'guide') {
+        guideSidebarContent?.classList.remove('hidden');
+      }
+
+      updateBrowserCompatibility(tabName);
+    });
+  });
+}
+
+// ============================================
+// GUIDE TAB
+// ============================================
+
+const mobileGuideMedia = window.matchMedia('(max-width: 768px)');
+
+function initGuide(): void {
+  const scrollPage = document.getElementById('guide-scroll-page');
+
+  // ── Simple / Advanced mode toggle ─────────────────────────────────────────
+  const modeBtns = document.querySelectorAll<HTMLElement>('.guide-mode-btn');
+  const getSavedMode = (): string => {
+    const storageKey = mobileGuideMedia.matches ? 'kb1-guide-mobile-mode' : 'kb1-guide-mode';
+    return localStorage.getItem(storageKey) ?? 'simple';
+  };
+  const applyMode = (mode: string): void => {
+    modeBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('data-mode') === mode));
+    });
+    scrollPage?.classList.toggle('advanced-mode', mode === 'advanced');
+  };
+
+  applyMode(getSavedMode());
+  modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-mode') ?? 'simple';
+      applyMode(mode);
+      const storageKey = mobileGuideMedia.matches ? 'kb1-guide-mobile-mode' : 'kb1-guide-mode';
+      localStorage.setItem(storageKey, mode);
+    });
+  });
+
+  mobileGuideMedia.addEventListener('change', () => {
+    if (mobileGuideMedia.matches) {
+      document.querySelector<HTMLElement>('.nav-tab[data-tab="guide"]')?.click();
+    }
+    applyMode(getSavedMode());
+  });
+
+  // ── Logo / home button ────────────────────────────────────────────────────
+  document.getElementById('logo-home-btn')?.addEventListener('click', () => {
+    const guideTab = document.querySelector<HTMLElement>('.nav-tab[data-tab="guide"]');
+    if (!guideTab) return;
+    if (guideTab.classList.contains('active')) {
+      scrollPage?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      guideTab.click();
+    }
+  });
+
+  // ── Load both diagrams ────────────────────────────────────────────────────
+  void loadKb1Diagram();
+  void loadTrackerDiagram();
+  setTimeout(initDiagramHighlights, 700);
+}
+
+/**
+ * Tag the parent <g> wrapper containing the first <text> with a matching transform.
+ * Used for the new SVG where each label is a <g> containing multiple <text> fragments.
+ */
+function tagLabelGroup(svg: Element, containerId: string, coordHint: string, component: string): void {
+  const container = svg.querySelector(`#${containerId}`);
+  if (!container) return;
+  (container as Element).querySelectorAll('g').forEach(g => {
+    const firstText = g.querySelector('text');
+    if (firstText && (firstText.getAttribute('transform') ?? '').includes(coordHint)) {
+      (g as Element).setAttribute('data-component', component);
+    }
+  });
+}
+
+/** Tag a polyline by its first coordinate pair (points attribute prefix) */
+function tagSvgByPoints(svg: Element, pointsStart: string, component: string): void {
+  svg.querySelectorAll('polyline').forEach(el => {
+    if ((el.getAttribute('points') ?? '').startsWith(pointsStart)) {
+      el.setAttribute('data-component', component);
+    }
+  });
+}
+
+/** Tag individual SVG shapes fully contained within a diagram coordinate region. */
+function tagSvgRegion(
+  svg: Element,
+  selector: string,
+  bounds: { left: number; top: number; right: number; bottom: number },
+  component: string,
+): void {
+  svg.querySelectorAll<SVGGraphicsElement>(selector).forEach(el => {
+    const box = el.getBBox();
+    if (
+      box.x >= bounds.left
+      && box.y >= bounds.top
+      && box.x + box.width <= bounds.right
+      && box.y + box.height <= bounds.bottom
+    ) {
+      el.setAttribute('data-component', component);
+    }
+  });
+}
+
+/** Load Diagram 1 (KB1 hardware overview), inject inline, add data-component attributes */
+async function loadKb1Diagram(): Promise<void> {
+  const container = document.getElementById('kb1-diagram-container');
+  if (!container) return;
+
+  try {
+    const url = `${import.meta.env.BASE_URL}KB1%20diagram%201.svg`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const svgText = await res.text();
+    container.innerHTML = svgText;
+
+    const svg = container.querySelector('svg');
+    if (!svg) return;
+    svg.id = 'kb1-diagram';
+    svg.setAttribute('aria-label', 'KB1 hardware diagram');
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    // New SVG already has a good landscape viewBox (1427×875, ≈1.63:1) — no override needed
+
+    // --- Label groups in <g id="text"> (each is a <g> wrapping multiple <text> fragments) ---
+    tagLabelGroup(svg, 'text', '292.63', 'lever1');
+    tagLabelGroup(svg, 'text', '413.33', 'lever2');
+    tagLabelGroup(svg, 'text', '917.75', 'oct-down');
+    tagLabelGroup(svg, 'text', '1029.71', 'oct-up');
+    tagLabelGroup(svg, 'text', '1359.70', 'power-indicator');
+    tagLabelGroup(svg, 'text', '1347.37', 'charge-indicator');
+    tagLabelGroup(svg, 'text', '1247.44', 'touchpad');
+    tagLabelGroup(svg, 'text', '522.11', 'speaker-switch');
+    tagLabelGroup(svg, 'text', '734.47', 'speaker-amp');
+
+    // --- Side labels in <g id="labels"> ---
+    tagLabelGroup(svg, 'labels', '88.56 249', 'line-in');
+    tagLabelGroup(svg, 'labels', '88.56 352', 'line-out');
+    tagLabelGroup(svg, 'labels', '1299.9', 'midi-out');
+
+    // --- USB port, power switch, ON/OFF labels, and direction arrows ---
+    tagSvgRegion(
+      svg,
+      '#lineart line, #lineart polyline, #lineart path, #lineart rect, #labels g, #labels polygon',
+      { left: 1280, top: 320, right: 1370, bottom: 430 },
+      'charging-hardware',
+    );
+
+    // --- Physical lever assemblies used to toggle Bluetooth ---
+    tagSvgRegion(
+      svg,
+      '#lineart line, #lineart polyline, #lineart path, #lineart rect',
+      { left: 425, top: 267, right: 625, bottom: 311 },
+      'bluetooth-hardware',
+    );
+
+    // --- Indicator polylines in <g id="lines"> ---
+    tagSvgByPoints(svg, '465.93 258.96', 'lever1');
+    tagSvgByPoints(svg, '587.62 258.96', 'lever2');
+    tagSvgByPoints(svg, '916.59 258.96', 'oct-up');
+    tagSvgByPoints(svg, '799.82 258.96', 'oct-down');
+    tagSvgByPoints(svg, '1361.3 321.82', 'power-indicator');
+    tagSvgByPoints(svg, '1362.64 426.93', 'charge-indicator');
+    tagSvgByPoints(svg, '1334.74 504.69', 'touchpad');
+    tagSvgByPoints(svg, '327.11 687.62', 'speaker-switch');
+    tagSvgByPoints(svg, '399 674.24', 'speaker-amp');
+
+    // --- Colored dots in <g id="dots"> ---
+    svg.querySelectorAll('circle').forEach(el => {
+      const cx = el.getAttribute('cx') ?? '';
+      const cy = el.getAttribute('cy') ?? '';
+      if (cx.startsWith('1348.23') && cy.startsWith('421')) el.setAttribute('data-component', 'charge-indicator');
+      else if (cx.startsWith('1348.23') && cy.startsWith('328')) el.setAttribute('data-component', 'power-indicator');
+      else if (cx.startsWith('384.65') && cy.startsWith('673')) el.setAttribute('data-component', 'speaker-amp');
+    });
+
+  } catch (err) {
+    console.warn('Could not load KB1 diagram:', err);
+    container.innerHTML = '<p style="color:var(--text-secondary);padding:1rem;font-size:0.85rem">Diagram unavailable</p>';
+  }
+}
+
+/** Load Diagram 2 (Tracker MIDI settings) and tag its active-setting cues. */
+async function loadTrackerDiagram(): Promise<void> {
+  const container = document.getElementById('kb1-diagram2-container');
+  if (!container) return;
+
+  try {
+    const url = `${import.meta.env.BASE_URL}KB1%20diagram%202.svg`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const svgText = await res.text();
+    const scopedSvgText = svgText.replace(/\bst(\d+)\b/g, 'tracker-st$1');
+    container.innerHTML = scopedSvgText;
+
+    const svg = container.querySelector('svg');
+    if (svg) {
+      svg.id = 'kb1-diagram2';
+      svg.setAttribute('aria-label', 'Polyend Tracker Mini MIDI configuration');
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      svg.querySelectorAll('#Layer_5 text').forEach(text => {
+        text.classList.add('tracker-setting-value');
+      });
+      svg.querySelectorAll('text').forEach(text => {
+        const content = text.textContent?.trim();
+        if (content === '<' || content === '261.6 Hz') {
+          text.classList.add('tracker-setting-cue');
         }
+      });
+    }
+  } catch (err) {
+    console.warn('Could not load Tracker diagram:', err);
+    container.innerHTML = '<p style="color:var(--text-secondary);padding:1rem;font-size:0.85rem">Diagram unavailable</p>';
+  }
+}
+
+/** Set active highlights on the KB1 hardware diagram */
+function setDiagramHighlight(diagram: Element, components: string[]): void {
+  diagram.querySelectorAll('[data-component]').forEach(el => el.classList.remove('highlighted'));
+
+  if (components.length === 0) {
+    diagram.classList.remove('has-highlight');
+    return;
+  }
+
+  diagram.classList.add('has-highlight');
+  components.forEach(comp => {
+    diagram.querySelectorAll(`[data-component="${comp}"]`).forEach(el => el.classList.add('highlighted'));
+  });
+}
+
+/** Preview highlights on hover and keep them active when a panel is selected. */
+function initDiagramHighlights(): void {
+  const guidePanels = Array.from(
+    document.querySelectorAll<HTMLElement>('.guide-top-panel, .guide-content-panel'),
+  );
+  const defaultPanel = document.getElementById('guide-charging-panel');
+  let selectedPanel: HTMLElement | null = null;
+
+  const clearPanelHighlights = (): void => {
+    selectedPanel = null;
+    guidePanels.forEach(panel => {
+      panel.classList.remove('panel-highlighted', 'panel-selected');
+      panel.setAttribute('aria-current', 'false');
+    });
+    const diagram = document.getElementById('kb1-diagram');
+    if (diagram) setDiagramHighlight(diagram, []);
+    document.getElementById('kb1-diagram2')?.classList.remove('settings-highlighted');
+  };
+
+  const updatePanelInteractivity = (): void => {
+    guidePanels.forEach(panel => {
+      panel.tabIndex = mobileGuideMedia.matches ? -1 : 0;
+    });
+    if (mobileGuideMedia.matches) {
+      clearPanelHighlights();
+    } else if (!selectedPanel && defaultPanel) {
+      selectPanel(defaultPanel);
+    }
+  };
+
+  const showPanelHighlights = (activePanel: HTMLElement | null): void => {
+    const diagram = document.getElementById('kb1-diagram');
+    const trackerDiagram = document.getElementById('kb1-diagram2');
+
+    guidePanels.forEach(panel => {
+      panel.classList.toggle('panel-highlighted', panel === activePanel);
+    });
+
+    const components = (activePanel?.getAttribute('data-highlights') ?? '').split(',').filter(Boolean);
+    if (diagram) setDiagramHighlight(diagram, components);
+    trackerDiagram?.classList.toggle(
+      'settings-highlighted',
+      activePanel?.hasAttribute('data-tracker-highlights') ?? false,
+    );
+  };
+
+  const selectPanel = (panel: HTMLElement): void => {
+    selectedPanel = panel;
+    guidePanels.forEach(candidate => {
+      const isSelected = candidate === selectedPanel;
+      candidate.classList.toggle('panel-selected', isSelected);
+      candidate.setAttribute('aria-current', String(isSelected));
+    });
+    showPanelHighlights(selectedPanel);
+  };
+
+  guidePanels.forEach(panel => {
+    panel.setAttribute('aria-current', 'false');
+
+    panel.addEventListener('mouseenter', () => {
+      if (mobileGuideMedia.matches) return;
+      showPanelHighlights(panel);
+    });
+
+    panel.addEventListener('mouseleave', () => {
+      if (mobileGuideMedia.matches) return;
+      showPanelHighlights(selectedPanel);
+    });
+
+    panel.addEventListener('click', () => {
+      if (mobileGuideMedia.matches) return;
+      selectPanel(panel);
+    });
+
+    panel.addEventListener('keydown', event => {
+      if (mobileGuideMedia.matches) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      selectPanel(panel);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('.guide-mode-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      if (selectedPanel && selectedPanel.getClientRects().length === 0) {
+        selectedPanel.classList.remove('panel-selected');
+        selectedPanel.setAttribute('aria-current', 'false');
+        selectedPanel = null;
+        showPanelHighlights(null);
       }
     });
   });
+
+  updatePanelInteractivity();
+  mobileGuideMedia.addEventListener('change', updatePanelInteractivity);
+  window.addEventListener('resize', updatePanelInteractivity);
 }
 
 // ============================================
@@ -4708,12 +5042,54 @@ function initFlashSidebarNav() {
 // BROWSER COMPATIBILITY
 // ============================================
 
-function checkBrowserCompatibility() {
+function updateBrowserCompatibility(tabName: string): void {
   const warning = document.getElementById('browser-warning');
-  if (!warning) return;
+  const title = document.getElementById('browser-warning-title');
+  const summary = document.getElementById('browser-warning-summary');
+  const features = document.getElementById('browser-warning-features');
+  if (!warning || !title || !summary || !features) return;
+
+  warning.classList.add('hidden');
+  features.replaceChildren();
+
+  if (tabName === 'guide') return;
+
   const hasSerialAPI = 'serial' in navigator;
   const hasAudioContext = 'AudioContext' in window || 'webkitAudioContext' in window;
-  if (!hasSerialAPI || !hasAudioContext) warning.classList.remove('hidden');
+  const hasFileSystemAccess = 'showOpenFilePicker' in window && 'showSaveFilePicker' in window;
+
+  let missingFeatures: string[] = [];
+  if (tabName === 'flash' && !hasSerialAPI) {
+    title.textContent = 'Chromium browser required for Flash Tools actions';
+    summary.textContent = 'Open this tab in desktop Chrome, Edge, or Opera to use:';
+    missingFeatures = [
+      'Web Serial device connection',
+      'Firmware flashing with NVS backup and restore',
+      'The live USB serial monitor',
+    ];
+  } else if (tabName === 'instrument' && (!hasAudioContext || !hasFileSystemAccess)) {
+    title.textContent = 'Chromium browser required for full Instrument Builder support';
+    summary.textContent = 'Open this tab in desktop Chrome, Edge, or Opera for the missing capabilities:';
+    if (!hasFileSystemAccess) {
+      missingFeatures.push(
+        'Native project open and save dialogs',
+        'Persistent file handles for repeated saves',
+        'Reliable saving of large .kb1i project files',
+      );
+    }
+    if (!hasAudioContext) {
+      missingFeatures.push('Audio decoding, waveform preview, and playback');
+    }
+  }
+
+  if (missingFeatures.length === 0) return;
+
+  missingFeatures.forEach(feature => {
+    const item = document.createElement('li');
+    item.textContent = feature;
+    features.appendChild(item);
+  });
+  warning.classList.remove('hidden');
 }
 
 // ============================================
@@ -4817,8 +5193,9 @@ function initKeyboardShortcuts() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('KB1 Studio initializing...');
 
-  checkBrowserCompatibility();
+  updateBrowserCompatibility('guide');
   initTabNavigation();
+  initGuide();
   initFlashSidebarNav();
   initFlashTools();
   initZoomBar();

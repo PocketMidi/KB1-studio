@@ -66,40 +66,35 @@ body {
     display: none !important;
 }
 
-/* Mobile Warning */
-.mobile-warning {
-    display: none;
-    background: var(--warning);
-    color: #000;
-    padding: 12px 16px;
-    text-align: center;
-    font-size: 0.9rem;
-    position: relative;
-    z-index: 100;
+.compatibility-notice {
+    flex-shrink: 0;
+    margin: var(--spacing-sm) var(--spacing-md) 0;
+    padding: 10px var(--spacing-md);
+    background: rgba(185, 170, 95, 0.08);
+    border: 1px solid rgba(185, 170, 95, 0.35);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.45;
 }
 
-.mobile-warning strong {
+.compatibility-notice strong {
     display: block;
-    margin-bottom: 4px;
+    color: var(--accent-bronze);
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 400;
 }
 
-@media (max-width: 800px) {
-    .mobile-warning {
-        display: block;
-    }
+.compatibility-notice p {
+    margin: 3px 0;
 }
 
-/* Browser Warning */
-.warning {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--warning);
-    color: #000;
-    padding: var(--spacing-md);
-    text-align: center;
-    z-index: 9999;
+.compatibility-notice ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--spacing-lg);
+    margin: 0;
+    padding-left: 18px;
 }
 
 /* ============================================
@@ -131,6 +126,19 @@ body {
     border-bottom: 1px solid var(--border);
     padding: 0;
     flex-shrink: 0;
+    /* home button */
+    background: transparent;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    transition: opacity 0.15s ease;
+}
+
+.logo-container:hover {
+    opacity: 0.8;
 }
 
 .logo {
@@ -144,6 +152,43 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.sidebar-sponsor {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-sponsor-label {
+    color: var(--accent-primary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.625rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.sidebar-sponsor-link {
+    display: block;
+    width: min(150px, 78%);
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar-sponsor-link:hover,
+.sidebar-sponsor-link:focus-visible {
+    opacity: 1;
+}
+
+.sidebar-sponsor-logo {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 /* Instrument Name Field */
@@ -2171,7 +2216,7 @@ body {
 .flash-content-area {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xs);
 }
 
 .flash-section {
@@ -2274,7 +2319,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-xs);
     min-width: 0;
 }
 
@@ -2344,28 +2389,35 @@ body {
     white-space: nowrap;
 }
 
+/* Outer panel wrapper for Flash Tools tab — consistent with Guide/Instrument panel style */
+#tab-flash {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
 /* Cards */
 .card {
     background: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
     border: 1px solid var(--border);
-    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .card.compact {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
 }
 
 .card.compact h3 {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
     font-size: 0.9rem;
 }
 
 .card.compact h4 {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
     font-size: 0.8125rem;
 }
 
@@ -2380,7 +2432,7 @@ body {
 .flash-section h4 {
     font-size: 0.8125rem;
     font-weight: 500;
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
     color: var(--text-secondary);
 }
 
@@ -3458,4 +3510,774 @@ body {
 .about-modal-body .link-grid {
     margin: 0;
     max-width: 100%;
+}
+
+/* ============================================
+   UTILITY CLASSES (reusable across all tabs)
+   ============================================ */
+
+.callout {
+    padding: 10px var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.callout--tip {
+    background: rgba(77, 95, 126, 0.18);
+    border-left-color: var(--accent-primary);
+    color: var(--text-secondary);
+}
+
+.callout--warn {
+    background: rgba(173, 97, 55, 0.18);
+    border-left-color: var(--accent-orange);
+    color: var(--text-primary);
+}
+
+.callout--chromium {
+    background: rgba(93, 111, 142, 0.13);
+    border-left-color: var(--accent-secondary);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+}
+
+.callout a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.callout a:hover {
+    text-decoration: underline;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.badge--chromium {
+    background: rgba(93, 111, 142, 0.25);
+    color: var(--accent-secondary);
+    border: 1px solid rgba(93, 111, 142, 0.35);
+    margin-left: auto;
+}
+
+/* ============================================
+   GUIDE TAB
+   ============================================ */
+
+/* Quick Start / Complete Guide mode selector */
+.guide-mode-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    flex-shrink: 0;
+}
+
+.guide-mode-btn {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.guide-mode-btn.active {
+    background: rgba(77, 95, 126, 0.25);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.guide-mode-btn:hover:not(.active) {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+}
+
+/* Single scrollable guide page — replaces two-panel switching */
+.guide-scroll-page {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    padding: 0 0 var(--spacing-xl);
+}
+
+/* Each section is always 75/25 side-by-side */
+.guide-scroll-section {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+    scroll-margin-top: 0;
+    padding: 0 0 var(--spacing-sm);
+}
+
+/* Top panel — diagram container, mirrors .piano-roll-panel */
+.guide-top-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 75%;
+    overflow: hidden;
+    height: 46vh;
+}
+
+/* Per-section diagram height overrides */
+#guide-tracker .guide-top-panel {
+    height: 35vh;
+}
+
+#guide-tracker .guide-content-row {
+    height: 35vh;
+}
+
+/* Content row fills remaining 25% */
+.guide-scroll-section .guide-content-row {
+    flex: 1;
+    height: 46vh;
+    min-height: 0;
+}
+
+/* ============================================
+   GUIDE SIMPLE / ADVANCED MODES
+   ============================================ */
+
+/* advanced-only elements hidden by default (simple is default) */
+.advanced-only {
+    display: none !important;
+}
+
+.guide-scroll-page.advanced-mode .advanced-only {
+    display: revert !important;
+}
+
+.guide-scroll-page.advanced-mode .simple-only {
+    display: none !important;
+}
+
+/* Advanced panels row: no diagram, three equal panels */
+.guide-advanced-row .guide-content-row {
+    flex: 1;
+    height: 38vh;
+    min-height: 0;
+}
+
+/* Browser bar — panel title strip inside diagram container */
+.guide-browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: 'Roboto Mono', monospace;
+    letter-spacing: 0.02em;
+}
+
+.guide-browser-bar a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.guide-browser-bar a:hover {
+    text-decoration: underline;
+}
+
+.guide-browser-bar-icon {
+    color: var(--accent-secondary);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+/* Text block inside the browser bar — single flex item so it flows normally */
+.guide-browser-bar-text {
+    flex: 1;
+    line-height: 1.45;
+    white-space: normal;
+}
+
+/* Diagram display area within the top panel */
+.guide-diagram-pane {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    padding: var(--spacing-lg);
+}
+
+.guide-diagram-pane svg {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+/* Bottom content row — mirrors .editor-row */
+.guide-content-row {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+    gap: var(--spacing-md);
+}
+
+/* Individual content panel — mirrors .sample-editor-panel */
+.guide-content-panel {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: border-color 0.58s ease;
+}
+
+.guide-top-panel,
+.guide-content-panel {
+    cursor: pointer;
+}
+
+/* Highlight the panel border when its diagram components are active */
+.guide-top-panel.panel-highlighted,
+.guide-content-panel.panel-highlighted {
+    border-color: rgba(185, 170, 95, 0.55);
+}
+
+.guide-top-panel.panel-selected,
+.guide-content-panel.panel-selected {
+    border-color: var(--accent-bronze);
+    box-shadow: inset 0 0 0 1px rgba(185, 170, 95, 0.3);
+}
+
+.guide-top-panel:focus-visible,
+.guide-content-panel:focus-visible {
+    outline: 2px solid var(--accent-bronze);
+    outline-offset: 2px;
+}
+
+/* Panel title header row */
+.guide-panel-header {
+    display: flex;
+    align-items: center;
+    padding: 7px var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+}
+
+/* Roboto Mono uppercase label — same pattern as guide-section-title */
+.guide-panel-title {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-bronze);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guide-panel-title::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 13px;
+    background: var(--accent-bronze);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Scrollable body of a content panel */
+.guide-panel-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+/* Content blocks within a scroll panel */
+.guide-section {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+}
+
+.guide-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.guide-section p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 8px 0;
+}
+
+.guide-section p:last-child {
+    margin-bottom: 0;
+}
+
+.guide-section p strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.guide-section p a,
+.guide-section a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.guide-section p a:hover,
+.guide-section a:hover {
+    text-decoration: underline;
+}
+
+/* Step list */
+.step-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--spacing-sm) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.step-item {
+    display: flex;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(77, 95, 126, 0.28);
+    color: var(--accent-primary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.step-item strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.step-item a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.step-item a:hover {
+    text-decoration: underline;
+}
+
+/* Tracker settings table */
+.guide-settings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin: var(--spacing-sm) 0;
+}
+
+.guide-settings-table th {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.725rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    text-align: left;
+    padding: 6px var(--spacing-sm);
+    border-bottom: 1px solid var(--border-strong);
+}
+
+.guide-settings-table td {
+    padding: 8px var(--spacing-sm);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+    line-height: 1.45;
+}
+
+.guide-settings-table td:first-child {
+    color: var(--text-primary);
+    width: 38%;
+}
+
+.guide-settings-table .setting-value {
+    font-family: 'Roboto Mono', monospace;
+    color: var(--accent-bronze);
+    font-size: 0.8125rem;
+}
+
+.guide-settings-table tr.highlighted-row td {
+    background: rgba(185, 170, 95, 0.07);
+}
+
+.guide-settings-table tr.highlighted-row td:first-child {
+    border-left: 2px solid var(--accent-bronze);
+    padding-left: calc(var(--spacing-sm) - 2px);
+}
+
+/* ============================================
+   DIAGRAM HIGHLIGHT SYSTEM
+   ============================================ */
+
+/* Tracker values are neutral in overview mode and yellow when Settings is active. */
+#kb1-diagram2 .tracker-setting-value {
+    fill: #838383 !important;
+}
+
+#kb1-diagram2.settings-highlighted .tracker-setting-value {
+    fill: #b7ab69 !important;
+}
+
+#kb1-diagram2 .tracker-setting-cue {
+    visibility: hidden;
+}
+
+#kb1-diagram2.settings-highlighted .tracker-setting-cue {
+    visibility: visible;
+}
+
+/* Smooth opacity transition on all tagged SVG elements */
+#kb1-diagram [data-component] {
+    transition: opacity 0.75s ease;
+}
+
+/* When diagram is in highlight mode: dim everything */
+#kb1-diagram.has-highlight [data-component] {
+    opacity: 0.15;
+}
+
+/* Restore highlighted elements */
+#kb1-diagram.has-highlight [data-component].highlighted {
+    opacity: 1;
+}
+
+/* Bronze color override for highlighted indicator lines and hardware outlines */
+polyline[data-component].highlighted,
+line[data-component].highlighted,
+path[data-component].highlighted,
+rect[data-component].highlighted {
+    stroke: var(--accent-bronze) !important;
+    stroke-width: 2.5px !important;
+}
+
+polygon[data-component].highlighted {
+    fill: var(--accent-bronze) !important;
+}
+
+/* Bronze color override for text/lines inside highlighted label groups */
+[data-component].highlighted text {
+    fill: var(--accent-bronze) !important;
+}
+
+[data-component].highlighted polyline,
+[data-component].highlighted line {
+    stroke: var(--accent-bronze) !important;
+    stroke-width: 2.5px !important;
+}
+
+/* Keep highlighted hardware neutral beside the gold labels and leader lines. */
+#kb1-diagram line[data-component="charging-hardware"].highlighted,
+#kb1-diagram polyline[data-component="charging-hardware"].highlighted,
+#kb1-diagram path[data-component="charging-hardware"].highlighted,
+#kb1-diagram rect[data-component="charging-hardware"].highlighted,
+#kb1-diagram line[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram polyline[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram path[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram rect[data-component="bluetooth-hardware"].highlighted {
+    stroke: #EAEAEA !important;
+}
+
+#kb1-diagram polygon[data-component="charging-hardware"].highlighted,
+#kb1-diagram [data-component="charging-hardware"].highlighted text,
+#kb1-diagram polygon[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram [data-component="bluetooth-hardware"].highlighted text {
+    fill: #EAEAEA !important;
+}
+
+.mobile-studio-note {
+    display: none;
+}
+
+/* ============================================
+   MOBILE USER GUIDE
+   ============================================ */
+
+@media (max-width: 768px) {
+    body {
+        overflow: hidden;
+    }
+
+    .app-container {
+        flex-direction: column;
+        height: 100dvh;
+    }
+
+    /* The desktop sidebar becomes the compact mobile Guide header. */
+    .sidebar {
+        display: flex;
+        width: 100%;
+        height: 68px;
+        flex-direction: row;
+        align-items: center;
+        overflow: hidden;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .logo-container {
+        width: 94px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        border-bottom: none;
+    }
+
+    .logo {
+        width: 94px;
+    }
+
+    #guide-sidebar-content {
+        display: flex !important;
+        min-width: 0;
+        justify-content: center;
+    }
+
+    #flash-sidebar-content,
+    #instrument-sidebar-content,
+    .sidebar-sponsor,
+    .top-nav,
+    .compatibility-notice {
+        display: none !important;
+    }
+
+    .guide-mode-toggle {
+        width: min(270px, 100%);
+        flex-direction: row;
+        gap: 0;
+        margin-left: auto;
+        padding: 10px 12px 10px 4px;
+    }
+
+    .guide-mode-btn {
+        min-height: 40px;
+        padding: 7px 8px;
+        border-radius: 0;
+        font-size: 0.65rem;
+    }
+
+    .guide-mode-btn:first-child {
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+
+    .guide-mode-btn:last-child {
+        margin-left: -1px;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .main-content,
+    .content-area,
+    #tab-guide {
+        width: 100%;
+        min-height: 0;
+    }
+
+    .content-area {
+        padding: 0;
+        gap: 0;
+    }
+
+    #tab-guide {
+        display: flex !important;
+    }
+
+    #tab-flash,
+    #tab-instrument {
+        display: none !important;
+    }
+
+    .guide-scroll-page {
+        gap: 0;
+        padding: 0 0 var(--spacing-xl);
+        overscroll-behavior-y: contain;
+    }
+
+    .guide-scroll-section,
+    .guide-scroll-page.advanced-mode .guide-advanced-row {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
+    }
+
+    .guide-scroll-page:not(.advanced-mode) .guide-advanced-row {
+        display: none !important;
+    }
+
+    .guide-top-panel,
+    .guide-content-panel,
+    #guide-tracker .guide-top-panel {
+        width: 100%;
+        height: auto;
+        flex: none;
+        overflow: visible;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        cursor: default;
+    }
+
+    .guide-top-panel,
+    #guide-tracker .guide-top-panel {
+        background: var(--bg-panel);
+    }
+
+    .guide-content-panel {
+        background: var(--bg-secondary);
+    }
+
+    .guide-advanced-row .guide-content-panel:nth-child(even) {
+        background: var(--bg-panel);
+    }
+
+    .guide-scroll-section .guide-content-row,
+    .guide-advanced-row .guide-content-row,
+    #guide-tracker .guide-content-row {
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        flex: none;
+        flex-direction: column;
+        overflow: visible;
+        gap: 0;
+    }
+
+    .guide-browser-bar,
+    .guide-panel-header {
+        padding: var(--spacing-md) 20px var(--spacing-xs);
+        background: transparent;
+        border: none;
+    }
+
+    .guide-diagram-pane {
+        display: block;
+        min-height: 0;
+        overflow: visible;
+        padding: var(--spacing-sm) 12px var(--spacing-lg);
+    }
+
+    .guide-diagram-pane svg {
+        width: 100%;
+        height: auto;
+        max-height: none;
+    }
+
+    .guide-panel-scroll {
+        overflow: visible;
+        padding: var(--spacing-sm) 20px var(--spacing-lg);
+    }
+
+    .guide-section {
+        margin-bottom: var(--spacing-md);
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .guide-section p,
+    .step-item,
+    .callout {
+        font-size: 0.75rem;
+    }
+
+    .mobile-studio-note {
+        display: block;
+        padding: var(--spacing-md) 20px;
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+    }
+
+    .mobile-studio-note-title {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--accent-bronze);
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.6875rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .mobile-studio-note p {
+        max-width: 52ch;
+        margin: 0;
+        font-size: 0.75rem;
+        line-height: 1.55;
+    }
+
+    .guide-top-panel.panel-highlighted,
+    .guide-content-panel.panel-highlighted,
+    .guide-top-panel.panel-selected,
+    .guide-content-panel.panel-selected {
+        border: none;
+        box-shadow: none;
+    }
+
+    .guide-top-panel:focus-visible,
+    .guide-content-panel:focus-visible {
+        outline: none;
+    }
+
+    #kb1-diagram2 .tracker-setting-value {
+        fill: #b7ab69 !important;
+    }
+
+    #kb1-diagram2 .tracker-setting-cue {
+        visibility: visible;
+    }
 }
