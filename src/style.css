@@ -3742,6 +3742,10 @@ body {
     display: block;
 }
 
+.guide-diagram-pane svg text {
+    font-family: 'Roboto', sans-serif !important;
+}
+
 /* Bottom content row — mirrors .editor-row */
 .guide-content-row {
     display: flex;
