@@ -3608,6 +3608,82 @@ body {
     border-color: var(--accent-primary);
 }
 
+/* Mobile-only top bar link to the KB1 Configurator app (hidden on desktop) */
+.guide-config-link {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    flex-shrink: 0;
+    padding: 0 10px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.guide-config-link:hover,
+.guide-config-link:focus-visible {
+    border-color: var(--accent-bronze);
+    color: var(--accent-bronze);
+
+}
+
+/* Desktop-only QR promo for the KB1 Configurator app (hidden on mobile) */
+.guide-config-promo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-md) var(--spacing-md);
+    text-align: center;
+}
+
+/* White quiet-zone margin so the dark UI background doesn't break QR scanning */
+.guide-config-qr-frame {
+    padding: 10px;
+    background: #fff;
+    border-radius: var(--radius-sm);
+    line-height: 0;
+}
+
+.guide-config-qr {
+    display: block;
+    width: 84px;
+    height: 84px;
+}
+
+.guide-config-promo-text {
+    margin: 0;
+    max-width: 24ch;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.guide-config-promo-text strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.guide-config-promo-text a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.guide-config-promo-text a:hover {
+    text-decoration: underline;
+}
+
 .guide-mode-btn:hover:not(.active) {
     color: var(--text-primary);
     border-color: var(--border-strong);
@@ -4085,20 +4161,29 @@ polygon[data-component].highlighted {
 
     #guide-sidebar-content {
         display: flex !important;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-xs);
         min-width: 0;
         justify-content: center;
+        padding-right: 10px;
     }
 
     #flash-sidebar-content,
     #instrument-sidebar-content,
     .sidebar-sponsor,
     .top-nav,
-    .compatibility-notice {
+    .compatibility-notice,
+    .guide-config-promo {
         display: none !important;
     }
 
+    .guide-config-link {
+        display: flex;
+    }
+
     .guide-mode-toggle {
-        width: min(270px, 100%);
+        width: min(250px, 100%);
         flex-direction: row;
         gap: 0;
         margin-left: auto;
@@ -4106,8 +4191,8 @@ polygon[data-component].highlighted {
     }
 
     .guide-mode-btn {
-        min-height: 40px;
-        padding: 7px 8px;
+        min-height: 30px;
+        padding: 5px 6px;
         border-radius: 0;
         font-size: 0.65rem;
     }
