@@ -3628,10 +3628,6 @@ body {
     letter-spacing: 0.05em;
     text-decoration: none;
     transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.guide-config-link:hover,
-.guide-config-link:focus-visible {
     border-color: var(--accent-bronze);
     color: var(--accent-bronze);
 
