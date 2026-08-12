@@ -3293,7 +3293,7 @@ body {
     border: 1.5px solid var(--text-secondary);
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
     flex-shrink: 0;
@@ -3774,7 +3774,7 @@ body {
 /* Advanced panels row: no diagram, three equal panels */
 .guide-advanced-row .guide-content-row {
     flex: 1;
-    height: 38vh;
+    height: 40vh;
     min-height: 0;
 }
 
