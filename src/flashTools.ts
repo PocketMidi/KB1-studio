@@ -30,8 +30,11 @@ function el<T extends HTMLElement = HTMLElement>(id: string): T | null {
 // ─── Public entry point ─────────────────────────────────────────────────────
 
 export function initFlashTools(): void {
+    // Help dialogs are in-page overlays and must work even in browsers
+    // that do not support the Flash Tools hardware APIs (e.g. Safari).
+    setupHelpModal();
+
     if (!KB1Flasher.isSupported()) {
-        el('browser-warning')?.classList.remove('hidden');
         return;
     }
 
@@ -41,7 +44,6 @@ export function initFlashTools(): void {
     setupLocalFirmwareFlash();
     setupClearDeviceData();
     setupSerialMonitor();
-    setupHelpModal();
 
     const progressMessage = el('progress-message');
     const progressFill = el('progress-fill');
