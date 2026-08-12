@@ -344,6 +344,8 @@
                                     data-highlights="lever1,lever2,bluetooth-hardware,oct-up,oct-down,touchpad">
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Controls</h3>
+                                        <button class="help-btn" data-modal="controls" title="Controls help"
+                                            aria-label="Open Controls help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll guide-hardware-copy">
                                         <p>Levers and touchpad can map to <strong>any MIDI CC</strong> in the
@@ -1054,6 +1056,12 @@
             <li><strong>Enabled but not listed:</strong> KB1 may already be connected to another app or device. Close
                 the other connection, then toggle Bluetooth off and on.</li>
         </ul>
+    </template>
+
+    <template id="controls-help-content">
+        <h3>Hanging MIDI Notes?</h3>
+        <p>Low battery power can interrupt MIDI communication and cause notes to continue after you release the keys.
+            Charge the KB1, then reconnect it to your MIDI device.</p>
     </template>
 
     <template id="configurator-help-content">
