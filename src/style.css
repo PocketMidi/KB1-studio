@@ -3658,14 +3658,14 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: 0 var(--spacing-md) var(--spacing-md);
+    gap: var(--spacing-lg);
+    padding: 24px var(--spacing-md) var(--spacing-md);
     text-align: center;
 }
 
 /* White quiet-zone margin so the dark UI background doesn't break QR scanning */
 .guide-config-qr-frame {
-    padding: 10px;
+    padding: 8px;
     background: #fff;
     border-radius: var(--radius-sm);
     line-height: 0;
@@ -3673,8 +3673,8 @@ body {
 
 .guide-config-qr {
     display: block;
-    width: 84px;
-    height: 84px;
+    width: 74px;
+    height: 74px;
 }
 
 .guide-config-promo-text {
@@ -3774,7 +3774,7 @@ body {
 /* Advanced panels row: no diagram, three equal panels */
 .guide-advanced-row .guide-content-row {
     flex: 1;
-    height: 40vh;
+    height: 39vh;
     min-height: 0;
 }
 
