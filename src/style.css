@@ -124,7 +124,7 @@ body {
 
 .logo-container {
     border-bottom: 1px solid var(--border);
-    padding: 0;
+    padding: 2rem;
     flex-shrink: 0;
     /* home button */
     background: transparent;
@@ -132,8 +132,11 @@ body {
     border-right: none;
     border-top: none;
     cursor: pointer;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    box-sizing: border-box;
     transition: opacity 0.15s ease;
 }
 
@@ -142,9 +145,18 @@ body {
 }
 
 .logo {
-    width: 100%;
+    width: min(100%, 128px);
     height: auto;
     display: block;
+    margin: 0 auto;
+}
+
+.desktop-logo {
+    display: block;
+}
+
+.mobile-logo {
+    display: none;
 }
 
 .sidebar-content {
@@ -3275,13 +3287,13 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 1.5px solid var(--text-secondary);
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
     cursor: pointer;
     flex-shrink: 0;
@@ -3293,6 +3305,14 @@ body {
 .help-btn:hover {
     border-color: var(--accent-primary);
     color: var(--accent-primary);
+}
+
+.help-btn--inline {
+    width: 18px;
+    height: 18px;
+    margin-left: 5px;
+    font-size: 0.625rem;
+    vertical-align: middle;
 }
 
 /* Help modal */
@@ -3758,6 +3778,11 @@ body {
     min-height: 0;
 }
 
+.guide-hardware-row .guide-content-row {
+    flex: none;
+    height: 160px;
+}
+
 /* Browser bar — panel title strip inside diagram container */
 .guide-browser-bar {
     display: flex;
@@ -3897,6 +3922,26 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: var(--spacing-md);
+}
+
+.guide-hardware-copy {
+    padding: 7px 14px;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    color: var(--text-secondary);
+}
+
+.guide-hardware-copy p {
+    margin: 0 0 4px;
+}
+
+.guide-hardware-copy ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.guide-hardware-copy li+li {
+    margin-top: 2px;
 }
 
 /* Content blocks within a scroll panel */
@@ -4083,6 +4128,34 @@ polygon[data-component].highlighted {
     fill: var(--accent-bronze) !important;
 }
 
+/* Outlined I/O labels use filled paths; stroking them creates a shifted, fuzzy halo. */
+#kb1-diagram path[data-component="line-in"].highlighted,
+#kb1-diagram path[data-component="line-out"].highlighted,
+#kb1-diagram path[data-component="midi-out"].highlighted {
+    fill: var(--accent-bronze) !important;
+    stroke: none !important;
+}
+
+/* Highlight both concentric rings of each 3.5 mm jack. */
+#kb1-diagram circle[data-component="line-in"].highlighted,
+#kb1-diagram circle[data-component="line-out"].highlighted,
+#kb1-diagram circle[data-component="midi-out"].highlighted {
+    stroke: var(--accent-bronze) !important;
+    stroke-width: 2.5px !important;
+}
+
+/* Speaker callout labels are outlined paths; keep their geometry crisp. */
+#kb1-diagram #text path[data-component="speaker-switch"].highlighted,
+#kb1-diagram #text path[data-component="speaker-amp"].highlighted,
+#kb1-diagram #text path[data-component="lever1"].highlighted,
+#kb1-diagram #text path[data-component="lever2"].highlighted,
+#kb1-diagram #text path[data-component="oct-up"].highlighted,
+#kb1-diagram #text path[data-component="oct-down"].highlighted,
+#kb1-diagram #text path[data-component="touchpad"].highlighted {
+    fill: var(--accent-bronze) !important;
+    stroke: none !important;
+}
+
 /* Bronze color override for text/lines inside highlighted label groups */
 [data-component].highlighted text {
     fill: var(--accent-bronze) !important;
@@ -4111,6 +4184,14 @@ polygon[data-component].highlighted {
 #kb1-diagram polygon[data-component="bluetooth-hardware"].highlighted,
 #kb1-diagram [data-component="bluetooth-hardware"].highlighted text {
     fill: #EAEAEA !important;
+}
+
+/* The Controls panel presents the shared lever assemblies as primary inputs. */
+#kb1-diagram.controls-highlighted line[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.controls-highlighted polyline[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.controls-highlighted path[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.controls-highlighted rect[data-component="bluetooth-hardware"].highlighted {
+    stroke: var(--accent-bronze) !important;
 }
 
 .mobile-studio-note {
@@ -4148,11 +4229,20 @@ polygon[data-component].highlighted {
         height: 68px;
         display: flex;
         align-items: center;
+        justify-content: center;
         border-bottom: none;
+        padding: 0 8px 0 0;
     }
 
-    .logo {
-        width: 94px;
+    .desktop-logo {
+        display: none;
+    }
+
+    .mobile-logo {
+        display: block;
+        width: 54px;
+        height: auto;
+        max-height: 32px;
     }
 
     #guide-sidebar-content {
@@ -4302,6 +4392,39 @@ polygon[data-component].highlighted {
     .guide-panel-scroll {
         overflow: visible;
         padding: var(--spacing-sm) 20px var(--spacing-lg);
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion {
+        overflow: hidden;
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion .guide-panel-header {
+        align-items: center;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion .guide-panel-header::after {
+        content: '+';
+        margin-left: auto;
+        color: var(--text-secondary);
+        font-family: 'Roboto Mono', monospace;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion.is-open .guide-panel-header::after {
+        content: '−';
+        color: var(--accent-bronze);
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion:not(.is-open) .guide-panel-scroll {
+        display: none;
+    }
+
+    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion.is-open .guide-panel-scroll {
+        display: block;
     }
 
     .guide-section {

@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KB1 Studio</title>
-    <link rel="icon" type="image/svg+xml" href="/pm_fav.svg" />
+    <link rel="icon" type="image/svg+xml" href="/PM_fav.svg" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
         <aside class="sidebar" id="main-sidebar">
             <!-- Logo / Home Button -->
             <button class="logo-container" id="logo-home-btn" title="Home" aria-label="Go to guide">
-                <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 132">
+                <svg class="logo desktop-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220.37 132.71">
                     <defs>
                         <style>
                             .logo-text,
@@ -32,19 +32,27 @@
                             .logo-text {
                                 isolation: isolate;
                                 font-family: Avenir-Medium, Avenir;
-                                font-size: 20.72px;
+                                font-size: 37px;
                                 font-weight: 500;
                             }
                         </style>
                     </defs>
-                    <path class="logo-path"
-                        d="M32.39,97.91v-52.87c0-8.26,6.46-15.24,14.71-15.49,8.58-.25,15.63,6.65,15.63,15.16v8.24c0,2.36,1.78,4.42,4.13,4.58,2.58.18,4.74-1.87,4.74-4.42,0-6.98,5.81-12.62,12.85-12.36s11.89,5.96,11.89,12.66v8.1c0,2.45,1.98,4.43,4.43,4.43h11.25c2.18,0,4.06,1.67,4.14,3.85s-1.74,4.09-3.97,4.09h-11.42c-6.83,0-12.37-5.54-12.37-12.37v-8.24c0-2.36-1.78-4.42-4.13-4.58-2.58-.18-4.74,1.87-4.74,4.42,0,6.98-5.81,12.62-12.85,12.36s-11.89-5.97-11.89-12.66v-7.89c0-3.89-2.98-7.24-6.86-7.43-4.15-.21-7.59,3.11-7.59,7.22v53.19c0,2.19-1.78,3.97-3.97,3.97h0c-2.19,0-3.97-1.78-3.97-3.97h-.02Z" />
-                    <path class="logo-path"
-                        d="M43.7,45.29c0-2.26,1.84-4.11,4.11-4.11s4.11,1.84,4.11,4.11-1.84,4.11-4.11,4.11-4.11-1.84-4.11-4.11Z" />
-                    <text class="logo-text" transform="translate(44.99 94.57)">
-                        <tspan x="0" y="0">pocket midi</tspan>
-                    </text>
+                    <g>
+                        <text class="logo-text" transform="translate(22.31 117.58)">
+                            <tspan x="0" y="0">pocket midi</tspan>
+                        </text>
+                    </g>
+                    <g>
+                        <path class="logo-path"
+                            d="M0,91.71V27.63C0,12.91,11.52.45,26.24,0c15.29-.45,27.87,11.85,27.87,27.04v14.7c0,4.21,3.17,7.88,7.36,8.17,4.6.31,8.45-3.35,8.45-7.89,0-12.45,10.36-22.52,22.91-22.05s21.21,10.64,21.21,22.59v14.44c0,4.37,3.54,7.9,7.9,7.9h20.07c3.88,0,7.26,2.99,7.37,6.86s-3.09,7.3-7.08,7.3h-20.36c-12.18,0-22.06-9.88-22.06-22.06v-14.7c0-4.21-3.17-7.88-7.36-8.17-4.6-.31-8.45,3.35-8.45,7.89,0,12.45-10.36,22.52-22.91,22.05s-21.21-10.64-21.21-22.59v-14.07c0-6.94-5.32-12.92-12.25-13.26-7.41-.37-13.55,5.55-13.55,12.88v64.66H0Z" />
+                        <path class="logo-path"
+                            d="M20.16,28.09c0-4.04,3.29-7.33,7.33-7.33s7.33,3.29,7.33,7.33-3.29,7.33-7.33,7.33-7.33-3.29-7.33-7.33Z" />
+                        <path class="logo-path"
+                            d="M12.31,116.56v-3.19h2.05v-4.27H0v4.27h2.05v3.19l-1.85,8.3c-.27,1.19.1,2.44.94,3.25l2.86,2.74c1.43,1.36,4.72,1.38,6.17.05l3.02-2.79c.87-.8,1.24-2.07.97-3.28l-1.84-8.27h-.01Z" />
+                        <rect class="logo-path" y="96.17" width="14.36" height="8.77" />
+                    </g>
                 </svg>
+                <img class="logo mobile-logo" src="/PM_mini_ora.svg" alt="Pocket MIDI" />
             </button>
 
             <!-- Guide Sidebar -->
@@ -263,6 +271,8 @@
                                     data-highlights="power-indicator,charge-indicator,charging-hardware">
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Basic Charging</h3>
+                                        <button class="help-btn" data-modal="charging" title="Charging help"
+                                            aria-label="Open charging help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
@@ -274,14 +284,13 @@
                                         <div class="guide-section">
                                             <ol class="step-list">
                                                 <li class="step-item"><span class="step-num">1</span><span> When
-                                                        switched <strong>ON,</strong> the <strong>Power
-                                                            Indicator</strong> (yellow LED)
-                                                        will light up, and the start-up sequence of LEDs will bounce
-                                                        across the top.</span></li>
+                                                        switched ON, the Power
+                                                        Indicator <strong>(yellow LED)</strong>
+                                                        will light up, and the start-up sequence of LEDs will
+                                                        bounce across the top.</span></li>
                                                 <li class="step-item"><span class="step-num">2</span><span>Plug in the
-                                                        USB-C power cord. The <strong>Charge Indicator</strong> (red
-                                                        LED) should begin blinking. (If it doesn't blink, unplug USB,
-                                                        wait 5 seconds, reconnect.)</span></li>
+                                                        USB-C power cord. The Charge Indicator<strong> (red
+                                                            LED)</strong> should begin blinking.</span></li>
 
                                             </ol>
                                         </div>
@@ -291,7 +300,67 @@
 
                         </section><!-- #guide-setup -->
 
-                        <!-- ═══ Advanced Section: Smart Charging + Bluetooth + Configurator (advanced-only) ═══ -->
+                        <!-- ═══ Hardware Overview (advanced-only) ═══ -->
+                        <section class="guide-scroll-section guide-advanced-row guide-hardware-row advanced-only"
+                            id="guide-hardware-panels">
+                            <div class="guide-content-row">
+                                <section class="guide-content-panel" id="guide-hardware-controls"
+                                    data-highlights="line-in,line-out,midi-out">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">I/O Ports</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll guide-hardware-copy">
+                                        <p><strong>3.5 mm jacks:</strong></p>
+                                        <ul>
+                                            <li><strong>Line In</strong> — direct analog line pass-through to Tracker
+                                                Mini</li>
+                                            <li><strong>Line Out</strong> — direct analog line pass-through from Tracker
+                                                Mini</li>
+                                            <li><strong>MIDI Out</strong> — direct digital line pass-through from
+                                                Tracker
+                                                Mini</li>
+                                        </ul>
+                                    </div>
+                                </section>
+
+                                <section class="guide-content-panel" id="guide-hardware-connections"
+                                    data-highlights="speaker-switch,speaker-amp">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Speakers &amp; Amp</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll guide-hardware-copy">
+                                        <p><strong>Independent analog amplifier</strong></p>
+                                        <ul>
+                                            <li>Separate from the digital MIDI system</li>
+                                            <li>The switch controls it independently; the green indicator shows when
+                                                it is on</li>
+                                            <li><strong>Switch it off when not in use:</strong> while on, it draws
+                                                directly from the battery—even when the CPU is asleep</li>
+                                        </ul>
+                                    </div>
+                                </section>
+
+                                <section class="guide-content-panel" id="guide-hardware-audio"
+                                    data-highlights="lever1,lever2,bluetooth-hardware,oct-up,oct-down,touchpad">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Controls</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll guide-hardware-copy">
+                                        <p>Levers and touchpad can map to <strong>any MIDI CC</strong> in the
+                                            Configurator app.<br>
+                                            Octave buttons are fixed.</p>
+                                        <ul>
+                                            <li><strong>Levers:</strong> left, right, and push are three independent
+                                                controls</li>
+                                            <li><strong>Touchpad:</strong> continuous analog input for real-time value
+                                                changes</li>
+                                        </ul>
+                                    </div>
+                                </section>
+                            </div>
+                        </section><!-- #guide-hardware-panels -->
+
+                        <!-- ═══ Advanced Section: Smart Charging + Bluetooth + Configurator App (advanced-only) ═══ -->
                         <section class="guide-scroll-section guide-advanced-row advanced-only"
                             id="guide-advanced-panels">
                             <div class="guide-content-row">
@@ -301,27 +370,31 @@
                                     data-highlights="power-indicator,charge-indicator,charging-hardware">
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Smart Charging</h3>
+                                        <button class="help-btn" data-modal="smart-charging" title="Smart Charging help"
+                                            aria-label="Open Smart Charging troubleshooting help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
                                             <p> For charging progress to be detected, saved, and accumulated,
-                                                a <strong> Computer Port</strong>
+                                                a Computer Port
                                                 is required.</p>
                                         </div>
                                         <div class="guide-section">
                                             <ol class="step-list">
                                                 <li class="step-item"><span class="step-num">1</span><span> When
-                                                        switched <strong>ON,</strong> the <strong>Power
-                                                            Indicator</strong> (yellow LED)
+                                                        switched ON, the Power
+                                                        Indicator (yellow LED)
                                                         will light up, and the start-up sequence of LEDs will bounce
                                                         across the top.</span></li>
 
-                                                <li class="step-item"><span class="step-num">2</span><span>Connect USB-C
-                                                        to a computer port. After 30 seconds (if no keys are pressed),
-                                                        the pink/blue LEDs will begin pulsing
-                                                        to confirm tracked charging is active,
-                                                        and will stop when the estimated charge time is complete,
-                                                        or when key press is detected.</span></li>
+                                                <li class="step-item"><span
+                                                        class="step-num">2</span><span><strong>Connect USB-C
+                                                            to a computer port.</strong> After 30 seconds without key,
+                                                        lever, or
+                                                        touch input, the pink/blue LEDs pulse to confirm tracked
+                                                        charging is active. Any input hides the pulse and restarts the
+                                                        30-second timer. The LEDs stop when the estimated charge time
+                                                        is complete.</span></li>
                                             </ol>
                                         </div>
 
@@ -333,6 +406,8 @@
                                     data-highlights="lever1,lever2,bluetooth-hardware">
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Bluetooth</h3>
+                                        <button class="help-btn" data-modal="bluetooth" title="Bluetooth help"
+                                            aria-label="Open Bluetooth troubleshooting help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
@@ -342,11 +417,14 @@
                                         <div class="guide-section">
 
                                             <ol class="step-list">
-                                                <li class="step-item"><span class="step-num">1</span><span>Squeeze both
-                                                        levers toward each other and hold
-                                                        <strong>3 seconds</strong>.</span></li>
-                                                <li class="step-item"><span class="step-num">2</span><span>Octave LEDs
-                                                        light, then pink/blue LEDs pulse with increasing speed.</span>
+                                                <li class="step-item"><span class="step-num">1</span><span>
+                                                        <strong>Squeeze</strong>
+                                                        both levers toward each other and hold.
+
+                                                    </span></li>
+                                                <li class="step-item"><span class="step-num">2</span><span>All LEDs
+                                                        light up, then pink/blue LEDs blink with increasing
+                                                        speed.</span>
                                                 </li>
                                                 <li class="step-item"><span class="step-num">3</span><span>
                                                         <strong>Release</strong> when
@@ -364,7 +442,7 @@
                                 <!-- Configurator -->
                                 <section class="guide-content-panel" id="guide-configurator-panel">
                                     <div class="guide-panel-header">
-                                        <h3 class="guide-panel-title">Configurator</h3>
+                                        <h3 class="guide-panel-title">Configurator App</h3>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
@@ -389,11 +467,14 @@
                                             </ol>
 
                                             <div class="callout callout--tip">
-                                                <strong>Designed for mobile:<br>
-                                                </strong> Android — Chrome, Edge, Opera.<br>
+                                                <strong>Designed for mobile:</strong>
+                                                <button class="help-btn help-btn--inline" data-modal="configurator"
+                                                    title="Configurator browser help"
+                                                    aria-label="Open Configurator browser help">?</button><br>
+                                                Android — Chrome, Edge, Opera.<br>
                                                 iOS — <a href="https://vbrowser.co" target="_blank" rel="noopener">V
                                                     Browser</a> recommended<br>
-                                                (No Bluetooth support in Safari).
+
                                             </div>
                                         </div>
                                     </div>
@@ -419,6 +500,9 @@
                                     data-tracker-highlights>
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Tracker Settings</h3>
+                                        <button class="help-btn" data-modal="tracker-settings"
+                                            title="Tracker Settings help"
+                                            aria-label="Open Tracker Settings troubleshooting help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
@@ -434,7 +518,11 @@
                                                 <li class="step-item"><span class="step-num">4</span><span>CC in channel
                                                         to <strong>CH1</strong></span></li>
                                                 <li class="step-item"><span class="step-num">5</span><span>Middle C to
-                                                        <strong>C-4</strong></span></li>
+                                                        <strong>C-4</strong>
+                                                        <button class="help-btn help-btn--inline" data-modal="octave"
+                                                            title="Middle C octave setting"
+                                                            aria-label="Open Middle C octave setting help">?</button>
+                                                    </span></li>
                                             </ol>
                                         </div>
                                     </div>
@@ -925,6 +1013,91 @@
     </div>
 
     <!-- Help Content Templates -->
+    <template id="charging-help-content">
+        <h3>Basic Charging Help</h3>
+        <p>The KB1 must be switched on before connecting the USB-C cable.</p>
+        <p>If the red <strong>Charge Indicator</strong> does not blink:</p>
+        <ol>
+            <li>Unplug the USB-C cable.</li>
+            <li>Wait 5 seconds.</li>
+            <li>Reconnect the USB-C cable.</li>
+        </ol>
+        <p>The yellow <strong>Power Indicator</strong> confirms that the KB1 is switched on. The red <strong>Charge
+                Indicator</strong> confirms that charging has started.</p>
+    </template>
+
+    <template id="smart-charging-help-content">
+        <h3>No Smart Charging Pulse?</h3>
+        <p>The pink and blue LEDs begin pulsing after 30 seconds of inactivity while tracked charging is active. Try
+            these checks in order:</p>
+        <ol>
+            <li>Connect KB1 directly to a <strong>computer USB port</strong> with a data-capable USB-C cable. A wall
+                charger or power bank can supply power, but cannot provide the USB data used to track charging.</li>
+            <li>Leave the keys, levers, and touch sensor alone for a full <strong>30 seconds</strong>. Any input hides
+                the charging pulse and restarts the idle timer.</li>
+            <li>Redo the charging sequence: disconnect USB, switch KB1 off, wait 5 seconds, switch it on using battery
+                power, then reconnect it to the computer.</li>
+        </ol>
+        <p>Once tracked charging has started, the computer may sleep. Charging continues while USB power remains, and
+            the LEDs stop when the estimated charge time is complete.</p>
+    </template>
+
+    <template id="bluetooth-help-content">
+        <h3>Bluetooth Troubleshooting</h3>
+        <ul>
+            <li><strong>No LEDs:</strong> push both levers fully inward. All LEDs light when the gesture is detected.
+            </li>
+            <li><strong>The sequence stops:</strong> release any keyboard keys. A held key cancels the gesture.</li>
+            <li><strong>Bluetooth does not toggle:</strong> keep both levers held until all LEDs
+                turn off, then release.</li>
+            <li><strong>KB1 disappeared later:</strong> sleep disables Bluetooth. Wake KB1 and repeat the gesture.</li>
+            <li><strong>Enabled but not listed:</strong> KB1 may already be connected to another app or device. Close
+                the other connection, then toggle Bluetooth off and on.</li>
+        </ul>
+    </template>
+
+    <template id="configurator-help-content">
+        <h3>Configurator Browser Help</h3>
+        <ul>
+            <li><strong>Android:</strong> use Chrome, Edge, or Opera. Allow Bluetooth or Nearby Devices when prompted.
+            </li>
+            <li><strong>iPhone/iPad:</strong> Safari does not support Web Bluetooth. Use <a href="https://vbrowser.co"
+                    target="_blank" rel="noopener">V Browser</a>, then enable
+                <strong>Settings → V Browser → Bluetooth</strong>.
+            </li>
+            <li><strong>Incomplete features after an update:</strong> refresh the browser. If features are still
+                missing, disconnect and reconnect KB1 to refresh the browser's cached Bluetooth services.</li>
+        </ul>
+    </template>
+
+    <template id="octave-help-content">
+        <h3>Middle C Tuning</h3>
+        <p>This setting controls how Tracker Mini pitches incoming MIDI note 60. Changing it shifts the playable range
+            by whole octaves.</p>
+        <p>Use <strong>C-4</strong> for Middle C at 261.6 Hz, or choose another octave to move the range lower or
+            higher.</p>
+        <h4>Tracker Mini options</h4>
+        <ul>
+            <li><strong>C-3:</strong> 130.8 Hz (one octave lower)</li>
+            <li><strong>C-4:</strong> 261.6 Hz (Middle C)</li>
+            <li><strong>C-5:</strong> 523.3 Hz (one octave higher)</li>
+            <li><strong>C-6:</strong> 1046.5 Hz (two octaves higher)</li>
+        </ul>
+    </template>
+
+    <template id="tracker-settings-help-content">
+        <h3>No Notes or Controls?</h3>
+        <ul>
+            <li><strong>No notes:</strong> set <strong>Notes in</strong> to <strong>MIDI In jack</strong>.</li>
+            <li><strong>Channels must be CH1:</strong> set both <strong>Notes in channel</strong> and
+                <strong>CC in channel</strong> to <strong>CH1</strong>. <strong>'All'</strong> will not work with KB1.
+            </li>
+            <li><strong>Levers or controls do nothing:</strong> set <strong>CC in</strong> to
+                <strong>MIDI In jack</strong>.
+            </li>
+        </ul>
+    </template>
+
     <template id="flash-help-content">
         <h3>Flashing Firmware</h3>
         <ul>

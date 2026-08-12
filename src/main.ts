@@ -4800,20 +4800,75 @@ async function loadKb1Diagram(): Promise<void> {
     // New SVG already has a good landscape viewBox (1427×875, ≈1.63:1) — no override needed
 
     // --- Label groups in <g id="text"> (each is a <g> wrapping multiple <text> fragments) ---
-    tagLabelGroup(svg, 'text', '292.63', 'lever1');
-    tagLabelGroup(svg, 'text', '413.33', 'lever2');
-    tagLabelGroup(svg, 'text', '917.75', 'oct-down');
-    tagLabelGroup(svg, 'text', '1029.71', 'oct-up');
     tagLabelGroup(svg, 'text', '1359.70', 'power-indicator');
     tagLabelGroup(svg, 'text', '1347.37', 'charge-indicator');
-    tagLabelGroup(svg, 'text', '1247.44', 'touchpad');
-    tagLabelGroup(svg, 'text', '522.11', 'speaker-switch');
-    tagLabelGroup(svg, 'text', '734.47', 'speaker-amp');
 
-    // --- Side labels in <g id="labels"> ---
-    tagLabelGroup(svg, 'labels', '88.56 249', 'line-in');
-    tagLabelGroup(svg, 'labels', '88.56 352', 'line-out');
-    tagLabelGroup(svg, 'labels', '1299.9', 'midi-out');
+    // --- Input control labels (outlined paths only) ---
+    tagSvgRegion(svg, '#text path', { left: 294, top: 77, right: 351, bottom: 126 }, 'lever1');
+    tagSvgRegion(svg, '#text path', { left: 415, top: 4, right: 472, bottom: 53 }, 'lever2');
+    tagSvgRegion(svg, '#text path', { left: 919, top: 3, right: 992, bottom: 52 }, 'oct-down');
+    tagSvgRegion(svg, '#text path', { left: 1031, top: 72, right: 1104, bottom: 126 }, 'oct-up');
+    tagSvgRegion(svg, '#text path', { left: 1248, top: 768, right: 1353, bottom: 792 }, 'touchpad');
+
+    // --- Octave arrow buttons and touchpad rings ---
+    tagSvgRegion(svg, '#lineart path', { left: 764, top: 274, right: 832, bottom: 304 }, 'oct-down');
+    tagSvgRegion(svg, '#lineart path', { left: 883, top: 274, right: 950, bottom: 304 }, 'oct-up');
+    tagSvgRegion(svg, '#lineart path', { left: 1318, top: 465, right: 1351, bottom: 498 }, 'touchpad');
+
+    // --- Speaker amp callout labels (outlined paths only) ---
+    tagSvgRegion(
+      svg,
+      '#text path',
+      { left: 522, top: 820, right: 665, bottom: 870 },
+      'speaker-switch',
+    );
+    tagSvgRegion(
+      svg,
+      '#text path',
+      { left: 735, top: 757, right: 877, bottom: 808 },
+      'speaker-amp',
+    );
+
+    // --- Physical speaker amp switch drawing ---
+    tagSvgRegion(
+      svg,
+      '#features path',
+      { left: 278, top: 680, right: 320, bottom: 697 },
+      'speaker-switch',
+    );
+
+    // --- I/O port labels (outlined paths only) ---
+    tagSvgRegion(
+      svg,
+      '#labels path',
+      { left: 88, top: 250, right: 101, bottom: 303 },
+      'line-in',
+    );
+    tagSvgRegion(
+      svg,
+      '#labels path',
+      { left: 88, top: 352, right: 101, bottom: 420 },
+      'line-out',
+    );
+    tagSvgRegion(
+      svg,
+      '#labels path',
+      { left: 1288, top: 244, right: 1301, bottom: 310 },
+      'midi-out',
+    );
+
+    // --- I/O jack rings, excluding the surrounding line art ---
+    svg.querySelectorAll<SVGCircleElement>('circle').forEach(el => {
+      const cx = Number(el.getAttribute('cx'));
+      const cy = Number(el.getAttribute('cy'));
+      if (Math.abs(cx - 52.7) < 0.01 && Math.abs(cy - 278.5) < 0.1) {
+        el.setAttribute('data-component', 'line-in');
+      } else if (Math.abs(cx - 52.7) < 0.01 && Math.abs(cy - 385.34) < 0.1) {
+        el.setAttribute('data-component', 'line-out');
+      } else if (Math.abs(cx - 1335.98) < 0.01 && Math.abs(cy - 278.44) < 0.1) {
+        el.setAttribute('data-component', 'midi-out');
+      }
+    });
 
     // --- USB port, power switch, ON/OFF labels, and direction arrows ---
     tagSvgRegion(
@@ -4876,15 +4931,21 @@ async function loadTrackerDiagram(): Promise<void> {
       svg.setAttribute('aria-label', 'Polyend Tracker Mini MIDI configuration');
       svg.removeAttribute('width');
       svg.removeAttribute('height');
-      svg.querySelectorAll('#Layer_5 text').forEach(text => {
-        text.classList.add('tracker-setting-value');
+
+      svg.querySelectorAll<SVGGElement>('#Layer_5 > g').forEach(group => {
+        group.querySelectorAll('path').forEach(path => {
+          path.classList.add('tracker-setting-value');
+          if (group.getBBox().x > 1040) path.classList.add('tracker-setting-cue');
+        });
       });
-      svg.querySelectorAll('text').forEach(text => {
-        const content = text.textContent?.trim();
-        if (content === '<' || content === '261.6 Hz') {
-          text.classList.add('tracker-setting-cue');
-        }
+
+      const frequencyCue = Array.from(svg.querySelectorAll<SVGGElement>('#Layer_11 g')).find(group => {
+        const bounds = group.getBBox();
+        return group.querySelector(':scope > path') !== null
+          && bounds.x > 1080 && bounds.y > 450
+          && bounds.width < 120 && bounds.height < 40;
       });
+      frequencyCue?.querySelectorAll('path').forEach(path => path.classList.add('tracker-setting-cue'));
     }
   } catch (err) {
     console.warn('Could not load Tracker diagram:', err);
@@ -4912,8 +4973,13 @@ function initDiagramHighlights(): void {
   const guidePanels = Array.from(
     document.querySelectorAll<HTMLElement>('.guide-top-panel, .guide-content-panel'),
   );
+  const contentPanels = Array.from(document.querySelectorAll<HTMLElement>('.guide-content-panel'));
+  const scrollPage = document.getElementById('guide-scroll-page');
   const defaultPanel = document.getElementById('guide-charging-panel');
   let selectedPanel: HTMLElement | null = null;
+
+  const isMobileAdvanced = (): boolean =>
+    mobileGuideMedia.matches && (scrollPage?.classList.contains('advanced-mode') ?? false);
 
   const clearPanelHighlights = (): void => {
     selectedPanel = null;
@@ -4922,7 +4988,10 @@ function initDiagramHighlights(): void {
       panel.setAttribute('aria-current', 'false');
     });
     const diagram = document.getElementById('kb1-diagram');
-    if (diagram) setDiagramHighlight(diagram, []);
+    if (diagram) {
+      setDiagramHighlight(diagram, []);
+      diagram.classList.remove('controls-highlighted');
+    }
     document.getElementById('kb1-diagram2')?.classList.remove('settings-highlighted');
   };
 
@@ -4930,10 +4999,36 @@ function initDiagramHighlights(): void {
     guidePanels.forEach(panel => {
       panel.tabIndex = mobileGuideMedia.matches ? -1 : 0;
     });
-    if (mobileGuideMedia.matches) {
+
+    const mobileAdvanced = isMobileAdvanced();
+    contentPanels.forEach(panel => {
+      const header = panel.querySelector<HTMLElement>('.guide-panel-header');
+      const body = panel.querySelector<HTMLElement>('.guide-panel-scroll');
+      const wasAccordion = panel.classList.contains('mobile-accordion');
+      panel.classList.toggle('mobile-accordion', mobileAdvanced);
+
+      if (mobileAdvanced) {
+        if (!wasAccordion) panel.classList.remove('is-open');
+        if (header && body) {
+          if (!body.id) body.id = `${panel.id}-content`;
+          header.tabIndex = 0;
+          header.setAttribute('role', 'button');
+          header.setAttribute('aria-controls', body.id);
+          header.setAttribute('aria-expanded', String(panel.classList.contains('is-open')));
+        }
+      } else {
+        panel.classList.remove('is-open');
+        header?.removeAttribute('tabindex');
+        header?.removeAttribute('role');
+        header?.removeAttribute('aria-controls');
+        header?.removeAttribute('aria-expanded');
+      }
+    });
+
+    if (mobileGuideMedia.matches && !mobileAdvanced) {
       clearPanelHighlights();
     } else if (!selectedPanel && defaultPanel) {
-      selectPanel(defaultPanel);
+      if (!mobileGuideMedia.matches) selectPanel(defaultPanel);
     }
   };
 
@@ -4946,7 +5041,10 @@ function initDiagramHighlights(): void {
     });
 
     const components = (activePanel?.getAttribute('data-highlights') ?? '').split(',').filter(Boolean);
-    if (diagram) setDiagramHighlight(diagram, components);
+    if (diagram) {
+      setDiagramHighlight(diagram, components);
+      diagram.classList.toggle('controls-highlighted', activePanel?.id === 'guide-hardware-audio');
+    }
     trackerDiagram?.classList.toggle(
       'settings-highlighted',
       activePanel?.hasAttribute('data-tracker-highlights') ?? false,
@@ -4961,6 +5059,26 @@ function initDiagramHighlights(): void {
       candidate.setAttribute('aria-current', String(isSelected));
     });
     showPanelHighlights(selectedPanel);
+  };
+
+  const toggleMobileAccordion = (panel: HTMLElement): void => {
+    if (!isMobileAdvanced()) return;
+    const opening = !panel.classList.contains('is-open');
+
+    contentPanels.forEach(candidate => {
+      candidate.classList.remove('is-open');
+      candidate.querySelector<HTMLElement>('.guide-panel-header')
+        ?.setAttribute('aria-expanded', 'false');
+    });
+
+    if (!opening) {
+      clearPanelHighlights();
+      return;
+    }
+
+    panel.classList.add('is-open');
+    panel.querySelector<HTMLElement>('.guide-panel-header')?.setAttribute('aria-expanded', 'true');
+    selectPanel(panel);
   };
 
   guidePanels.forEach(panel => {
@@ -4987,6 +5105,18 @@ function initDiagramHighlights(): void {
       event.preventDefault();
       selectPanel(panel);
     });
+
+    const header = panel.querySelector<HTMLElement>('.guide-panel-header');
+    header?.addEventListener('click', event => {
+      if (!isMobileAdvanced() || (event.target as Element).closest('.help-btn')) return;
+      toggleMobileAccordion(panel);
+    });
+    header?.addEventListener('keydown', event => {
+      if (!isMobileAdvanced() || event.target !== header) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      toggleMobileAccordion(panel);
+    });
   });
 
   document.querySelectorAll<HTMLElement>('.guide-mode-btn').forEach(button => {
@@ -4997,6 +5127,7 @@ function initDiagramHighlights(): void {
         selectedPanel = null;
         showPanelHighlights(null);
       }
+      updatePanelInteractivity();
     });
   });
 
