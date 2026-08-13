@@ -4100,14 +4100,19 @@ body {
     visibility: visible;
 }
 
-/* Smooth opacity transition on all tagged SVG elements */
+/* Smooth opacity transition on all tagged SVG elements. Keep the art readable and avoid
+   the harsh wash-out caused by stacking multiple dimming rules on the same diagram. */
 #kb1-diagram [data-component] {
     transition: opacity 0.75s ease;
 }
 
-/* When diagram is in highlight mode: dim everything */
-#kb1-diagram.has-highlight [data-component] {
-    opacity: 0.15;
+#kb1-diagram [data-component="leds"] {
+    opacity: 0.4;
+}
+
+/* Keep non-led artwork readable without introducing additional dimming on the rest of the board. */
+#kb1-diagram.has-highlight [data-component]:not(.highlighted):not([data-component="leds"]) {
+    opacity: 1;
 }
 
 /* Restore highlighted elements */
@@ -4186,11 +4191,32 @@ polygon[data-component].highlighted {
     fill: #EAEAEA !important;
 }
 
+/* The new LED layer sits at 40% baseline. Bluetooth brings the whole layer to 100%. Smart Charging only lifts the
+   pink/blue LED elements to full brightness; the green octave-button accents stay at the 40% baseline. */
+#kb1-diagram.bluetooth-leds [data-component="leds"].highlighted,
+#kb1-diagram.bluetooth-leds [data-component="leds"][data-led-color="green"].highlighted {
+    opacity: 1 !important;
+}
+
+#kb1-diagram.smart-charging-leds [data-component="leds"][data-led-color="pink"].highlighted,
+#kb1-diagram.smart-charging-leds [data-component="leds"][data-led-color="blue"].highlighted {
+    opacity: 1 !important;
+}
+
+#kb1-diagram.smart-charging-leds [data-component="leds"][data-led-color="green"].highlighted {
+    opacity: 0.4 !important;
+}
+
 /* The Controls panel presents the shared lever assemblies as primary inputs. */
 #kb1-diagram.controls-highlighted line[data-component="bluetooth-hardware"].highlighted,
 #kb1-diagram.controls-highlighted polyline[data-component="bluetooth-hardware"].highlighted,
 #kb1-diagram.controls-highlighted path[data-component="bluetooth-hardware"].highlighted,
-#kb1-diagram.controls-highlighted rect[data-component="bluetooth-hardware"].highlighted {
+#kb1-diagram.controls-highlighted rect[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.bluetooth-leds [data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.bluetooth-leds line[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.bluetooth-leds polyline[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.bluetooth-leds path[data-component="bluetooth-hardware"].highlighted,
+#kb1-diagram.bluetooth-leds rect[data-component="bluetooth-hardware"].highlighted {
     stroke: var(--accent-bronze) !important;
 }
 

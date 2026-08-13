@@ -4906,6 +4906,20 @@ async function loadKb1Diagram(): Promise<void> {
       else if (cx.startsWith('384.65') && cy.startsWith('673')) el.setAttribute('data-component', 'speaker-amp');
     });
 
+    const ledLayer = svg.querySelector('#leds');
+    if (ledLayer) {
+      ledLayer.querySelectorAll<SVGGraphicsElement>('rect, path').forEach(el => {
+        el.setAttribute('data-component', 'leds');
+        if (el.classList.contains('st9')) {
+          el.setAttribute('data-led-color', 'pink');
+        } else if (el.classList.contains('st11')) {
+          el.setAttribute('data-led-color', 'blue');
+        } else if (el.classList.contains('st10')) {
+          el.setAttribute('data-led-color', 'green');
+        }
+      });
+    }
+
   } catch (err) {
     console.warn('Could not load KB1 diagram:', err);
     container.innerHTML = '<p style="color:var(--text-secondary);padding:1rem;font-size:0.85rem">Diagram unavailable</p>';
@@ -5044,6 +5058,8 @@ function initDiagramHighlights(): void {
     if (diagram) {
       setDiagramHighlight(diagram, components);
       diagram.classList.toggle('controls-highlighted', activePanel?.id === 'guide-hardware-audio');
+      diagram.classList.toggle('smart-charging-leds', activePanel?.id === 'guide-smart-charging');
+      diagram.classList.toggle('bluetooth-leds', activePanel?.id === 'guide-ble-panel');
     }
     trackerDiagram?.classList.toggle(
       'settings-highlighted',
