@@ -19,12 +19,33 @@ let flasher: KB1Flasher | null = null;
 let serialMonitor: SerialMonitor | null = null;
 let currentFirmware: FirmwareFile | null = null;
 let latestVersion: string = '';
+let deviceVersion: string | null = null;
+let availableReleases: FirmwareRelease[] = [];
+let selectedRelease: FirmwareRelease | null = null;
+let isFlashing = false;
 let connectionState: ConnectionState = 'disconnected';
+
+const IDLE_HINT = 'Connect your KB1 over USB to begin';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T | null {
     return document.getElementById(id) as T | null;
+}
+
+function v(version: string): string {
+    return version.startsWith('v') ? version : `v${version}`;
+}
+
+/** Returns <0, 0 or >0 comparing dotted numeric versions. */
+function compareVersions(a: string, b: string): number {
+    const pa = a.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+    const pb = b.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+        if (d !== 0) return d;
+    }
+    return 0;
 }
 
 // ─── Public entry point ─────────────────────────────────────────────────────
@@ -48,10 +69,11 @@ export function initFlashTools(): void {
     const progressMessage = el('progress-message');
     const progressFill = el('progress-fill');
     const progressPercent = el('progress-percent');
-    if (progressMessage) progressMessage.textContent = 'Select a firmware version or upload a .bin file to begin';
+    if (progressMessage) progressMessage.textContent = IDLE_HINT;
     if (progressFill) progressFill.style.width = '0%';
     if (progressPercent) progressPercent.textContent = '0%';
 
+    updateUpdateCard();
     loadGitHubReleases();
 
     el('reset-btn')?.addEventListener('click', resetFlash);
@@ -76,7 +98,7 @@ function setConnState(state: ConnectionState): void {
                 : 'CONNECT';
     }
     btn.title = state === 'connected' ? 'Disconnect KB1' : '';
-    updateFlashButtonStates();
+    refreshUpdatePanel();
 }
 
 function setupConnectionButtons(): void {
@@ -113,11 +135,7 @@ function setupConnectionButtons(): void {
 
             // Read boot banner in background — device is already outputting it after reset
             void flasher.readBootBanner().then(version => {
-                if (!version) return;
-                const versionEl = el('device-firmware-version');
-                const banner = el('firmware-version-banner');
-                if (versionEl) versionEl.textContent = `v${version}`;
-                if (banner) banner.classList.add('has-version');
+                if (version) setDeviceVersion(version);
             });
 
             setConnState('connected');
@@ -148,35 +166,140 @@ function handleAutoDisconnect(): void {
     showToast('Device disconnected — USB unplugged', 'info');
 }
 
-function updateFlashButtonStates(): void {
+/** Single entry point: version messaging, button labels and step guidance. */
+function refreshUpdatePanel(): void {
+    updateUpdateCard();
+    updateWorkflowSteps();
+
     const flashGitHubBtn = el<HTMLButtonElement>('flash-github-btn');
     const flashLocalBtn = el<HTMLButtonElement>('flash-local-btn');
     if (!flashGitHubBtn || !flashLocalBtn) return;
 
     const connected = connectionState === 'connected';
     const connecting = connectionState === 'connecting';
-    const hasGitHubSelection = !!(window as any).selectedRelease;
     const hasLocalFile = flashLocalBtn.style.display === 'block';
 
-    const githubDisabled = !connected || connecting || !hasGitHubSelection;
+    const githubDisabled = !connected || connecting || !selectedRelease;
     const localDisabled = !connected || connecting || !hasLocalFile;
 
     const githubReason = !connected && !connecting
         ? 'Please connect your KB1 device first'
-        : connecting ? 'Connecting…' : !hasGitHubSelection ? 'Select a firmware version' : '';
+        : connecting ? 'Connecting…' : !selectedRelease ? 'Select a firmware version' : '';
     const localReason = !connected && !connecting
         ? 'Please connect your KB1 device first'
         : connecting ? 'Connecting…' : !hasLocalFile ? 'Upload a firmware file first' : '';
 
+    flashGitHubBtn.textContent = githubButtonLabel(connected, connecting);
+
     flashGitHubBtn.classList.toggle('btn-disabled', githubDisabled);
-    flashGitHubBtn.classList.toggle('btn-ready', !githubDisabled);
+    flashGitHubBtn.classList.toggle('btn-ready', !githubDisabled && isUpdateAvailable());
     if (githubReason) flashGitHubBtn.setAttribute('data-disabled-reason', githubReason);
     else flashGitHubBtn.removeAttribute('data-disabled-reason');
 
     flashLocalBtn.classList.toggle('btn-disabled', localDisabled);
-    flashLocalBtn.classList.toggle('btn-ready', !localDisabled);
     if (localReason) flashLocalBtn.setAttribute('data-disabled-reason', localReason);
     else flashLocalBtn.removeAttribute('data-disabled-reason');
+}
+
+function isUpdateAvailable(): boolean {
+    return !!(deviceVersion && latestVersion && compareVersions(latestVersion, deviceVersion) > 0);
+}
+
+function githubButtonLabel(connected: boolean, connecting: boolean): string {
+    if (connecting) return 'Connecting…';
+    if (!connected) return 'Connect your KB1 to continue';
+    if (!selectedRelease) return 'Select a firmware version';
+
+    const target = selectedRelease.version;
+    if (!deviceVersion) return `Install ${v(target)}`;
+    const diff = compareVersions(target, deviceVersion);
+    if (diff > 0) return `Update to ${v(target)}`;
+    if (diff < 0) return `Downgrade to ${v(target)}`;
+    return `Reinstall ${v(target)}`;
+}
+
+/** "Your KB1 is running v2.0.4. Update to v2.1.0?" */
+function updateUpdateCard(): void {
+    const compare = el('version-compare');
+    const headline = el('update-headline');
+    const installed = el('vc-installed');
+    const available = el('vc-latest');
+
+    if (installed) installed.textContent = deviceVersion ? v(deviceVersion) : '—';
+    if (available) available.textContent = selectedRelease ? v(selectedRelease.version)
+        : latestVersion ? v(latestVersion) : '—';
+
+    const updateAvailable = isUpdateAvailable();
+    compare?.classList.toggle('update-available', updateAvailable);
+    compare?.classList.toggle('up-to-date', !!deviceVersion && !!latestVersion && !updateAvailable);
+
+    if (!headline) return;
+
+    if (connectionState !== 'connected') {
+        headline.textContent = latestVersion
+            ? `Latest firmware is ${v(latestVersion)}. Connect your KB1 over USB to check its version.`
+            : 'Connect your KB1 over USB to check its firmware version.';
+        return;
+    }
+    if (!deviceVersion) {
+        headline.textContent = latestVersion
+            ? `Reading device version… Latest firmware is ${v(latestVersion)}.`
+            : 'Reading device version…';
+        return;
+    }
+    // A non-latest pick from the version list overrides the default messaging
+    if (selectedRelease && latestVersion && selectedRelease.version !== latestVersion) {
+        const diff = compareVersions(selectedRelease.version, deviceVersion);
+        headline.textContent = diff === 0
+            ? `Your KB1 is running ${v(deviceVersion)}. Reinstall this version?`
+            : diff < 0
+                ? `Your KB1 is running ${v(deviceVersion)}. Downgrade to ${v(selectedRelease.version)}?`
+                : `Your KB1 is running ${v(deviceVersion)}. Install ${v(selectedRelease.version)}?`;
+        return;
+    }
+    if (updateAvailable) {
+        headline.textContent = `Your KB1 is running ${v(deviceVersion)}. Update to ${v(latestVersion)}?`;
+    } else if (latestVersion && compareVersions(deviceVersion, latestVersion) > 0) {
+        headline.textContent = `Your KB1 is running ${v(deviceVersion)}, newer than the latest release ${v(latestVersion)}.`;
+    } else {
+        headline.textContent = `Your KB1 is up to date, running ${v(deviceVersion)}.`;
+    }
+}
+
+/** Highlights the step the user should act on next while idle. */
+function updateWorkflowSteps(): void {
+    if (isFlashing) return;
+    const connected = connectionState === 'connected';
+    const ready = connected && (!!selectedRelease || currentFirmware?.source === 'local');
+
+    document.querySelectorAll<HTMLElement>('.step').forEach(step => {
+        const name = step.getAttribute('data-step');
+        step.classList.remove('step-next');
+        if (name === 'checking-usb') {
+            step.classList.toggle('complete', connected);
+            step.classList.toggle('step-next', !connected);
+            const fill = step.querySelector<HTMLElement>('.step-progress-fill');
+            if (fill) fill.style.width = connected ? '100%' : '0%';
+        } else if (name === 'flashing-firmware' && ready) {
+            step.classList.add('step-next');
+        }
+    });
+
+    const progressMessage = el('progress-message');
+    if (progressMessage) {
+        progressMessage.textContent = !connected ? IDLE_HINT
+            : ready ? 'Ready to flash — press the update button when you are.'
+                : 'Device connected. Choose a firmware version to continue.';
+    }
+}
+
+function setDeviceVersion(version: string | null): void {
+    deviceVersion = version;
+    const versionEl = el('device-firmware-version');
+    const banner = el('firmware-version-banner');
+    if (versionEl) versionEl.textContent = version ? v(version) : '—';
+    banner?.classList.toggle('has-version', !!version);
+    refreshUpdatePanel();
 }
 
 // ─── Device Info ────────────────────────────────────────────────────────────
@@ -188,10 +311,7 @@ async function loadDeviceInfo(): Promise<void> {
     set('device-chip-type', 'ESP32-S3');
     set('device-flash-size', '8 MB');
     // Firmware version is detected from serial output — show placeholder until detected
-    const banner = el('firmware-version-banner');
-    const versionEl = el('device-firmware-version');
-    if (versionEl) versionEl.textContent = '—';
-    if (banner) banner.classList.remove('has-version');
+    setDeviceVersion(null);
 
     // Read live chip description from bootloader
     if (flasher) {
@@ -226,6 +346,7 @@ async function loadNVSData(): Promise<void> {
 }
 
 function clearDeviceInfo(): void {
+    deviceVersion = null;
     ['device-name', 'device-chip-type', 'device-flash-size',
         'device-firmware-version', 'nvs-bat-pct', 'nvs-bat-ble-on-ms',
         'nvs-bat-ble-off-ms', 'nvs-bat-disch-ms', 'nvs-bat-cal-time',
@@ -267,7 +388,7 @@ async function loadLocalFirmware(file: File): Promise<void> {
         currentFirmware = { name: file.name, data, source: 'local' };
         if (fileName) fileName.textContent = `${file.name} (${(data.byteLength / 1024 / 1024).toFixed(2)} MB) — Ready`;
         if (flashLocalBtn) flashLocalBtn.style.display = 'block';
-        updateFlashButtonStates();
+        refreshUpdatePanel();
     } catch (err) {
         console.error('Failed to load firmware:', err);
         if (fileName) fileName.textContent = 'Drop .bin file or click to browse';
@@ -281,13 +402,11 @@ async function loadLocalFirmware(file: File): Promise<void> {
 async function loadGitHubReleases(): Promise<void> {
     const releasesLoading = el('releases-loading');
     const releasesList = el('releases-list');
-    const flashGitHubBtn = el<HTMLButtonElement>('flash-github-btn');
     const versionNumber = el('version-number');
-    if (!releasesLoading || !releasesList || !flashGitHubBtn) return;
+    if (!releasesLoading || !releasesList) return;
 
     releasesLoading.style.display = 'flex';
     releasesList.style.display = 'none';
-    flashGitHubBtn.style.display = 'none';
 
     try {
         const releases = await fetchReleases();
@@ -296,9 +415,10 @@ async function loadGitHubReleases(): Promise<void> {
             return;
         }
         latestVersion = releases[0].version;
-        if (versionNumber) versionNumber.textContent = latestVersion;
+        if (versionNumber) versionNumber.textContent = v(latestVersion);
 
         const displayReleases = releases.slice(0, 10);
+        availableReleases = displayReleases;
         releasesList.innerHTML = '';
         displayReleases.forEach((release, i) => {
             const item = document.createElement('div');
@@ -307,30 +427,27 @@ async function loadGitHubReleases(): Promise<void> {
             item.innerHTML = `
                 <div class="release-version">${release.name}${i === 0 ? ' <span class="release-badge">Latest</span>' : ''}</div>
                 <div class="release-meta">${new Date(release.date).toLocaleDateString()}</div>`;
-            item.addEventListener('click', () => selectRelease(item, i, displayReleases));
+            item.addEventListener('click', () => selectRelease(item, i));
             releasesList.appendChild(item);
         });
 
         releasesLoading.style.display = 'none';
         releasesList.style.display = 'block';
-        flashGitHubBtn.style.display = 'block';
-        (window as any).githubReleases = displayReleases;
+
+        // Latest is pre-selected so the primary action is meaningful without a click
+        const firstItem = releasesList.querySelector<HTMLElement>('.release-list-item');
+        if (firstItem) selectRelease(firstItem, 0);
     } catch (err) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         releasesLoading.innerHTML = `<p>Failed to load releases: ${msg}</p>`;
     }
 }
 
-function selectRelease(element: HTMLElement, index: number, releases: FirmwareRelease[]): void {
-    const alreadySelected = element.classList.contains('selected');
-    document.querySelectorAll('.release-list-item').forEach(el => el.classList.remove('selected'));
-    if (alreadySelected) {
-        (window as any).selectedRelease = null;
-    } else {
-        element.classList.add('selected');
-        (window as any).selectedRelease = releases[index];
-    }
-    updateFlashButtonStates();
+function selectRelease(element: HTMLElement, index: number): void {
+    document.querySelectorAll('.release-list-item').forEach(item => item.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedRelease = availableReleases[index] ?? null;
+    refreshUpdatePanel();
 }
 
 // ─── Flash ──────────────────────────────────────────────────────────────────
@@ -340,7 +457,7 @@ function setupGitHubFirmwareSelection(): void {
         const btn = e.currentTarget as HTMLButtonElement;
         const reason = btn.getAttribute('data-disabled-reason');
         if (reason) { showToast(reason, 'info'); return; }
-        const release: FirmwareRelease | undefined = (window as any).selectedRelease;
+        const release: FirmwareRelease | undefined = selectedRelease ?? undefined;
         if (!release) return;
         try {
             const data = await downloadFirmware(release.filename);
@@ -379,6 +496,7 @@ async function startFlash(): Promise<void> {
 
     const clearToggle = el<HTMLInputElement>('clear-data-toggle');
     try {
+        isFlashing = true;
         await flasher.flash(currentFirmware.data, clearToggle?.checked ?? false);
     } catch (err) {
         showError(err instanceof Error ? err.message : 'Flash failed');
@@ -386,7 +504,6 @@ async function startFlash(): Promise<void> {
 }
 
 function setupClearDeviceData(): void {
-    const clearBtn = el<HTMLButtonElement>('clear-device-data-btn');
     const clearToggle = el<HTMLInputElement>('clear-data-toggle');
     const clearWarning = el('clear-data-warning');
     const backupStep = document.querySelector<HTMLElement>('.step[data-step="backing-up-nvs"]');
@@ -397,26 +514,6 @@ function setupClearDeviceData(): void {
         backupStep?.classList.toggle('step-skipped', clearToggle.checked);
         restoreStep?.classList.toggle('step-skipped', clearToggle.checked);
     });
-
-    clearBtn?.addEventListener('click', async () => {
-        if (!confirm('This will permanently erase all presets, calibration data, and settings from your KB1.\n\nAre you sure?')) return;
-        clearBtn.disabled = true;
-        clearBtn.textContent = 'Clearing…';
-        try {
-            const cf = new KB1Flasher();
-            cf.onStatus((s: FlashStatus) => updateFlashUI(s));
-            await cf.requestPort();
-            el('flash-complete')?.classList.add('hidden');
-            el('flash-error')?.classList.add('hidden');
-            await cf.clearDeviceData();
-            showToast('Device data cleared successfully', 'success');
-        } catch (err) {
-            showToast(err instanceof Error ? err.message : 'Failed to clear device data', 'error');
-        } finally {
-            clearBtn.disabled = false;
-            clearBtn.textContent = 'Clear Device Data';
-        }
-    });
 }
 
 // ─── Progress UI ─────────────────────────────────────────────────────────────
@@ -425,6 +522,7 @@ function updateFlashUI(status: FlashStatus): void {
     if (status.step === 'error') { showError(status.error || status.message); return; }
     if (status.step === 'complete') { showComplete(); return; }
 
+    isFlashing = true;
     const progressFill = el('progress-fill');
     const progressPercent = el('progress-percent');
     const progressMessage = el('progress-message');
@@ -441,7 +539,7 @@ function updateFlashUI(status: FlashStatus): void {
         const idx = stepOrder.indexOf(name);
         const fill = step.querySelector<HTMLElement>('.step-progress-fill');
 
-        step.classList.remove('active', 'complete');
+        step.classList.remove('active', 'complete', 'step-next');
 
         if (name === status.step && !step.classList.contains('step-skipped')) {
             step.classList.add('active');
@@ -460,6 +558,7 @@ function updateFlashUI(status: FlashStatus): void {
 }
 
 function showComplete(): void {
+    isFlashing = false;
     const progressFill = el('progress-fill');
     const progressPercent = el('progress-percent');
     const progressMessage = el('progress-message');
@@ -496,11 +595,7 @@ async function autoReconnectAfterFlash(): Promise<void> {
         await flasher.resetToFirmware();
 
         void flasher.readBootBanner().then(version => {
-            if (!version) return;
-            const versionEl = el('device-firmware-version');
-            const banner = el('firmware-version-banner');
-            if (versionEl) versionEl.textContent = `v${version}`;
-            if (banner) banner.classList.add('has-version');
+            if (version) setDeviceVersion(version);
         });
 
         resetProgressUI();
@@ -513,22 +608,23 @@ async function autoReconnectAfterFlash(): Promise<void> {
 }
 
 function resetProgressUI(): void {
+    isFlashing = false;
     el('flash-complete')?.classList.add('hidden');
     el('flash-error')?.classList.add('hidden');
     const pf = el('progress-fill');
     const pp = el('progress-percent');
-    const pm = el('progress-message');
     if (pf) { pf.style.width = '0%'; pf.classList.remove('success'); }
     if (pp) pp.textContent = '0%';
-    if (pm) pm.textContent = 'Select a firmware version or upload a .bin file to begin';
     document.querySelectorAll<HTMLElement>('.step').forEach(step => {
         step.classList.remove('active', 'complete');
         const fill = step.querySelector<HTMLElement>('.step-progress-fill');
         if (fill) fill.style.width = '0%';
     });
+    refreshUpdatePanel();
 }
 
 function showError(message: string): void {
+    isFlashing = false;
     el('flash-error')?.classList.remove('hidden');
     const em = el('error-message');
     if (em) em.textContent = message;
@@ -537,6 +633,7 @@ function showError(message: string): void {
 
 async function resetFlash(): Promise<void> {
     if (flasher) { try { await flasher.cleanup(); } catch { /* ignore */ } }
+    isFlashing = false;
     el('flash-complete')?.classList.add('hidden');
     el('flash-error')?.classList.add('hidden');
 
@@ -548,23 +645,18 @@ async function resetFlash(): Promise<void> {
     if (fileInput) fileInput.value = '';
     if (flashLocalBtn) flashLocalBtn.style.display = 'none';
 
-    (window as any).selectedRelease = null;
-    document.querySelectorAll<HTMLElement>('.release-list-item').forEach(el => el.classList.remove('selected'));
-
-    updateFlashButtonStates();
-
     const pf = el('progress-fill');
     const pp = el('progress-percent');
-    const pm = el('progress-message');
     if (pf) { pf.style.width = '0%'; pf.classList.remove('success'); }
     if (pp) pp.textContent = '0%';
-    if (pm) pm.textContent = 'Select a firmware version or upload a .bin file to begin';
 
     document.querySelectorAll<HTMLElement>('.step').forEach(step => {
         step.classList.remove('active', 'complete');
         const fill = step.querySelector<HTMLElement>('.step-progress-fill');
         if (fill) fill.style.width = '0%';
     });
+
+    refreshUpdatePanel();
 }
 
 // ─── Serial Monitor ──────────────────────────────────────────────────────────
@@ -589,12 +681,7 @@ function setupSerialMonitor(): void {
                 if (autoScrollCheckbox?.checked) serialOutput.scrollTop = serialOutput.scrollHeight;
                 // Detect firmware version from boot banner: "KB1 FIRMWARE v2.2.0"
                 const vMatch = line.match(/KB1 FIRMWARE v(\d+\.\d+\.\d+)/i);
-                if (vMatch) {
-                    const versionEl = el('device-firmware-version');
-                    const banner = el('firmware-version-banner');
-                    if (versionEl) versionEl.textContent = `v${vMatch[1]}`;
-                    if (banner) banner.classList.add('has-version');
-                }
+                if (vMatch) setDeviceVersion(vMatch[1]);
             });
             await serialMonitor.connect();
             serialConnectBtn.classList.add('hidden');

@@ -2257,13 +2257,31 @@ body {
     border: 1px solid transparent;
 }
 
+/* Only one control invites a click at a time: Connect while disconnected,
+   then the update button once a device is attached. */
 .btn-conn[data-state="disconnected"] {
     background: var(--accent-primary);
     color: #fff;
+    animation: conn-pulse 1.8s ease-in-out infinite;
 }
 
 .btn-conn[data-state="disconnected"]:hover {
     background: var(--accent-secondary);
+    animation: none;
+}
+
+@keyframes conn-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(77, 95, 126, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px rgba(77, 95, 126, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(77, 95, 126, 0);
+    }
 }
 
 .btn-conn[data-state="connecting"] {
@@ -2561,6 +2579,102 @@ body {
     background: #923730;
 }
 
+/* Version comparison */
+.version-compare {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.vc-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 78px;
+}
+
+.vc-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.vc-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.vc-arrow {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.version-compare.update-available .vc-block:last-child .vc-value,
+.version-compare.update-available .vc-arrow {
+    color: var(--accent-primary);
+}
+
+.version-compare.up-to-date .vc-value {
+    color: var(--success);
+}
+
+.update-headline {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin: 10px 0 0;
+    line-height: 1.35;
+}
+
+.update-warning {
+    margin-top: 10px;
+    font-size: 0.82rem;
+}
+
+/* Collapsed advanced options */
+.disclosure {
+    margin-top: 12px;
+}
+
+.disclosure-summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.disclosure-summary::-webkit-details-marker {
+    display: none;
+}
+
+.disclosure-summary::before {
+    content: '▸';
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+}
+
+details[open]>.disclosure-summary::before {
+    transform: rotate(90deg);
+}
+
+.disclosure-summary:hover {
+    color: var(--text-primary);
+}
+
+.disclosure-body {
+    margin-top: 10px;
+}
+
 /* Spinner */
 @keyframes spin {
     to {
@@ -2692,8 +2806,14 @@ body {
 }
 
 .upload-icon {
-    font-size: 1.4rem;
+    display: flex;
+    color: var(--text-secondary);
     margin-bottom: 4px;
+}
+
+.file-drop-zone:hover .upload-icon,
+.file-drop-zone.drag-over .upload-icon {
+    color: var(--accent-primary);
 }
 
 #file-name {
@@ -2738,12 +2858,6 @@ body {
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
-.card-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin: 0 0 12px;
-}
-
 /* Flash two-column grid */
 .flash-grid {
     display: grid;
@@ -2766,6 +2880,22 @@ body {
 
 .flash-col-side .card {
     margin-bottom: var(--spacing-md);
+}
+
+/* Side card matches the update card's height; the drop zone absorbs the slack */
+.flash-col-side .card:only-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.flash-col-side .card:only-child .file-upload-area {
+    flex: 1;
+    display: flex;
+}
+
+.flash-col-side .card:only-child .file-drop-zone {
+    flex: 1;
 }
 
 .flash-col-side .card:last-child {
@@ -2793,6 +2923,21 @@ body {
 .step.active,
 .step.complete {
     opacity: 1;
+}
+
+/* The step the user should act on next (outside an active flash).
+   Deliberately un-animated — the rail reports state, the buttons carry the action. */
+.step.step-next {
+    opacity: 1;
+}
+
+.step.step-next .step-icon {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.step.step-next .step-label {
+    color: var(--text-primary);
 }
 
 .step-icon {
