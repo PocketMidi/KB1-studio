@@ -2133,7 +2133,7 @@ body {
 }
 
 /* ================================================================
-   FLASH TOOLS — migrated from kb1-flash
+   FLASH TOOLS 
    ================================================================ */
 
 /* Flash tab persistent header (connect button + version + status) */
@@ -3878,7 +3878,7 @@ details[open]>.disclosure-summary::before {
     border-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
-    flex: 0 0 75%;
+    flex: 0 0 66.66%;
     overflow: hidden;
     height: 46vh;
 }
