@@ -74,7 +74,7 @@
                             alt="QR code linking to the KB1 Configurator web app" />
                     </div>
                     <p class="guide-config-promo-text">
-                        The <strong>KB1 Configurator</strong> is a mobile web app. <br>
+                        The <strong><em>KB1 Configurator</em></strong> is a mobile web app. <br>
                         Android: Chrome, Edge, Opera.<br>
                         iOS: <a href="https://vbrowser.co" target="_blank" rel="noopener">V
                             Browser</a>
@@ -223,7 +223,7 @@
             </div>
 
             <div class="sidebar-sponsor">
-                <span class="sidebar-sponsor-label">Open-source hardware partially sponsored by</span>
+                <span class="sidebar-sponsor-label">Support for this project comes from</span>
                 <a class="sidebar-sponsor-link" href="https://www.pcbway.com/" target="_blank" rel="noopener sponsored"
                     aria-label="Visit PCBWay">
                     <img class="sidebar-sponsor-logo" src="/pcbway.png" alt="PCBWay" />
@@ -342,10 +342,10 @@
                                         <p><strong>Independent analog amplifier</strong></p>
                                         <ul>
                                             <li>Separate from the digital MIDI system</li>
-                                            <li>The switch controls it independently; the green indicator shows when
-                                                it is on</li>
-                                            <li><strong>Switch it off when not in use:</strong> while on, it draws
-                                                directly from the battery—even when the CPU is asleep</li>
+                                            <li>Controlled independently by this switch; the green indicator shows when
+                                                powered on</li>
+                                            <li><strong>Switch off when not in use:</strong> while on, it draws
+                                                directly from the battery — even when the CPU is asleep</li>
                                         </ul>
                                     </div>
                                 </section>
@@ -358,12 +358,15 @@
                                             aria-label="Open Controls help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll guide-hardware-copy">
-                                        <p>Levers and touchpad can map to <strong>any MIDI CC</strong> in the
-                                            Configurator app.<br>
-                                            Octave buttons are fixed.</p>
+                                        <p>Levers and touchpad can be mapped to <strong>any MIDI CC</strong> via the
+                                            Configurator app.
+                                        </p>
                                         <ul>
-                                            <li><strong>Levers:</strong> left, right, and push are three independent
+                                            <li><strong>Levers 1 & 2 :</strong> left, right, and push are three
+                                                independent
                                                 controls</li>
+                                            <li><strong> Octave Up/Dn:</strong> fixed functions only</li>
+                                            </li>
                                             <li><strong>Touchpad:</strong> continuous analog input for real-time value
                                                 changes</li>
                                         </ul>
@@ -392,20 +395,21 @@
                                                 <li class="step-item"><span class="step-num">1</span><span>
                                                         <strong>Connect USB-C to a computer port.</strong> After 30
                                                         seconds without key, lever, or touch input, the pink/blue LEDs
-                                                        pulse to confirm tracked charging is active. Any input hides the
+                                                        pulse to confirm tracked charging is active. Any new input hides
+                                                        the
                                                         pulse and restarts the 30-second timer.</span></li>
                                                 <li class="step-item"><span class="step-num">2</span><span>
                                                         <strong>First-time calibration</strong> takes about 5 hours of
                                                         charge time total. Sessions don't need to be back-to-back —
-                                                        progress is saved and picks up automatically next time you
-                                                        charge this way.</span></li>
+                                                        progress is saved and picks up automatically the next time
+                                                        charged in this way.</span></li>
                                                 <li class="step-item"><span class="step-num">3</span><span>Once
                                                         calibrated, tracking continues automatically on every charge
                                                         after that — no need to repeat it.</span></li>
                                                 <li class="step-item"><span class="step-num">4</span><span>Enable
                                                         <strong>Battery Monitoring</strong> in the Configurator App to
-                                                        see your percentage — it's hidden by default. You can also
-                                                        override the value manually there if needed.</span></li>
+                                                        see the level — it's hidden by default. Value can also
+                                                        be overridden manually if needed.</span></li>
                                             </ol>
                                         </div>
                                     </div>
@@ -459,7 +463,8 @@
                                                 Once Bluetooth is enabled, follow these
                                                 steps in the
                                                 <a href="https://pocketmidi.github.io/KB1-config" target="_blank"
-                                                    rel="noopener">KB1 Configurator</a> web app:
+                                                    rel="noopener"><strong><em>KB1 Configurator</em></strong></a> web
+                                                app:
                                             </p>
                                         </div>
                                         <div class="guide-section">
@@ -467,7 +472,7 @@
                                             <ol class="step-list">
                                                 <li class="step-item"><span class="step-num">1</span><span>Tap the
                                                         Bluetooth
-                                                        icon → select your device from the pairing dialog.</span></li>
+                                                        icon → select device from the pairing dialog.</span></li>
                                                 <li class="step-item"><span class="step-num">2</span><span>Load presets,
                                                         explore settings, try new combos, then,
                                                         tap the amber arrow to upload. Repeat.
@@ -582,7 +587,7 @@
                             <div id="flash-progress" class="card compact">
                                 <div class="header-with-subtitle">
                                     <h3>Update progress</h3>
-                                    <p id="progress-message" class="progress-subtitle">Connect your KB1 over USB to
+                                    <p id="progress-message" class="progress-subtitle">Connect KB1 over USB to
                                         begin</p>
                                 </div>
                                 <div class="progress-steps">
@@ -638,8 +643,10 @@
                                                 <span class="vc-value" id="vc-latest">—</span>
                                             </div>
                                         </div>
-                                        <p class="update-headline" id="update-headline">Connect your KB1 to check its
-                                            firmware version.</p>
+                                        <p class="update-headline" id="update-headline">Connect
+                                            <strong><em>KB1</em></strong> to check the
+                                            firmware version.
+                                        </p>
 
                                         <div class="callout callout--warn update-warning">
                                             <strong>If KB1 is connected to Tracker Mini, power down Tracker before
@@ -650,7 +657,7 @@
 
                                         <button id="flash-github-btn" class="btn btn-primary btn-disabled"
                                             style="margin-top:8px;width:100%"
-                                            data-disabled-reason="Please connect your KB1 device first">Connect your KB1
+                                            data-disabled-reason="Please connect KB1 device first">Connect KB1
                                             to continue</button>
 
                                         <details class="disclosure" id="version-picker">
@@ -696,7 +703,7 @@
                                         </div>
                                         <button id="flash-local-btn" class="btn btn-secondary btn-disabled"
                                             style="margin-top:8px;width:100%;display:none"
-                                            data-disabled-reason="Please connect your KB1 device first">Flash Custom
+                                            data-disabled-reason="Please connect the KB1 device first">Flash Custom
                                             Firmware</button>
                                     </div>
                                 </div>
@@ -1019,7 +1026,7 @@
             <div class="about-modal-body">
                 <p>The Instrument Builder creates <strong>.pti</strong> instrument files for the <a
                         href="https://polyend.com/tracker-mini/" target="_blank">Polyend Tracker Mini</a> directly in
-                    your browser — no software to install.</p>
+                    the browser — no software to install.</p>
                 <div class="about-credit-block">
                     <p class="about-credit-label">Powered by</p>
                     <a href="https://github.com/polyend/tracker-lib" target="_blank" class="about-credit-link">
@@ -1117,8 +1124,8 @@
                 direction</li>
         </ul>
         <h4>Hanging MIDI notes?</h4>
-        <p>Low battery power can interrupt MIDI communication and cause notes to continue after you release the keys.
-            Time to charge the KB1.</p>
+        <p>Low battery power can interrupt MIDI communication and cause missed notes or notes to hang –
+            time to recharge.</p>
     </template>
 
     <template id="configurator-help-content">
@@ -1199,7 +1206,7 @@
 
     <template id="device-help-content">
         <h3>Device Information</h3>
-        <p>Shows hardware details read directly from your KB1 over USB when connected &mdash; chip type, flash size, and
+        <p>Shows hardware details read directly from KB1 over USB when connected &mdash; chip type, flash size, and
             the latest firmware version available on GitHub.</p>
     </template>
 
@@ -1220,21 +1227,21 @@
         <h4>Why does the flash tool preserve it?</h4>
         <p>A standard firmware flash erases the entire flash partition, which would wipe out weeks of calibration data
             and reset the battery indicator to a rough estimate. KB1 Studio reads the NVS partition <em>before</em>
-            flashing and writes it back <em>after</em> &mdash; so your battery gauge stays accurate across every update.
+            flashing and writes it back <em>after</em> &mdash; so the battery gauge stays accurate across every update.
         </p>
     </template>
 
     <template id="instrument-guide-help-content">
         <h3>Instrument Builder guide</h3>
         <ul>
-            <li>Start with <strong>Batch import</strong> to load your sample set, or <strong>Add to bin</strong> to add
+            <li>Start with <strong>Batch import</strong> to load a sample set, or <strong>Add to bin</strong> to add
                 files without auto assignment</li>
-            <li>Use the <strong>adjustment strip</strong> under the piano roll to shift your full assignment layout by
+            <li>Use the <strong>adjustment strip</strong> under the piano roll to shift full assignment layout by
                 semitone or octave while preserving note spacing</li>
             <li>Use <strong>Slot duration</strong> to set playback length; keep the lock on for a consistent instrument,
                 unlock for per-slot timing</li>
-            <li>Use <strong>Normalize</strong> when your source files have low or uneven loudness</li>
-            <li>Save your project as <strong>.kb1i</strong> while working, then export <strong>.pti</strong> when ready
+            <li>Use <strong>Normalize</strong> when source files have low or uneven loudness</li>
+            <li>Save project as <strong>.kb1i</strong> while working, then export <strong>.pti</strong> when ready
             </li>
             <li>Scroll to zoom, Shift+scroll to pan in both the piano roll and waveform editor</li>
         </ul>

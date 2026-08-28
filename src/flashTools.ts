@@ -25,7 +25,7 @@ let selectedRelease: FirmwareRelease | null = null;
 let isFlashing = false;
 let connectionState: ConnectionState = 'disconnected';
 
-const IDLE_HINT = 'Connect your KB1 over USB to begin';
+const IDLE_HINT = 'Connect KB1 over USB to begin';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -183,10 +183,10 @@ function refreshUpdatePanel(): void {
     const localDisabled = !connected || connecting || !hasLocalFile;
 
     const githubReason = !connected && !connecting
-        ? 'Please connect your KB1 device first'
+        ? 'Please connect KB1 device first'
         : connecting ? 'Connecting…' : !selectedRelease ? 'Select a firmware version' : '';
     const localReason = !connected && !connecting
-        ? 'Please connect your KB1 device first'
+        ? 'Please connect KB1 device first'
         : connecting ? 'Connecting…' : !hasLocalFile ? 'Upload a firmware file first' : '';
 
     flashGitHubBtn.textContent = githubButtonLabel(connected, connecting);
@@ -207,7 +207,7 @@ function isUpdateAvailable(): boolean {
 
 function githubButtonLabel(connected: boolean, connecting: boolean): string {
     if (connecting) return 'Connecting…';
-    if (!connected) return 'Connect your KB1 to continue';
+    if (!connected) return 'Connect KB1 to continue';
     if (!selectedRelease) return 'Select a firmware version';
 
     const target = selectedRelease.version;
@@ -218,7 +218,7 @@ function githubButtonLabel(connected: boolean, connecting: boolean): string {
     return `Reinstall ${v(target)}`;
 }
 
-/** "Your KB1 is running v2.0.4. Update to v2.1.0?" */
+/** "KB1 is running v2.0.4. Update to v2.1.0?" */
 function updateUpdateCard(): void {
     const compare = el('version-compare');
     const headline = el('update-headline');
@@ -237,8 +237,8 @@ function updateUpdateCard(): void {
 
     if (connectionState !== 'connected') {
         headline.textContent = latestVersion
-            ? `Latest firmware is ${v(latestVersion)}. Connect your KB1 over USB to check its version.`
-            : 'Connect your KB1 over USB to check its firmware version.';
+            ? `Latest firmware is ${v(latestVersion)}. Connect KB1 over USB to check the version.`
+            : 'Connect KB1 over USB to check the firmware version.';
         return;
     }
     if (!deviceVersion) {
@@ -251,18 +251,18 @@ function updateUpdateCard(): void {
     if (selectedRelease && latestVersion && selectedRelease.version !== latestVersion) {
         const diff = compareVersions(selectedRelease.version, deviceVersion);
         headline.textContent = diff === 0
-            ? `Your KB1 is running ${v(deviceVersion)}. Reinstall this version?`
+            ? `KB1 is running ${v(deviceVersion)}. Reinstall this version?`
             : diff < 0
-                ? `Your KB1 is running ${v(deviceVersion)}. Downgrade to ${v(selectedRelease.version)}?`
-                : `Your KB1 is running ${v(deviceVersion)}. Install ${v(selectedRelease.version)}?`;
+                ? `KB1 is running ${v(deviceVersion)}. Downgrade to ${v(selectedRelease.version)}?`
+                : `KB1 is running ${v(deviceVersion)}. Install ${v(selectedRelease.version)}?`;
         return;
     }
     if (updateAvailable) {
-        headline.textContent = `Your KB1 is running ${v(deviceVersion)}. Update to ${v(latestVersion)}?`;
+        headline.textContent = `KB1 is running ${v(deviceVersion)}. Update to ${v(latestVersion)}?`;
     } else if (latestVersion && compareVersions(deviceVersion, latestVersion) > 0) {
-        headline.textContent = `Your KB1 is running ${v(deviceVersion)}, newer than the latest release ${v(latestVersion)}.`;
+        headline.textContent = `KB1 is running ${v(deviceVersion)}, newer than the latest release ${v(latestVersion)}.`;
     } else {
-        headline.textContent = `Your KB1 is up to date, running ${v(deviceVersion)}.`;
+        headline.textContent = `KB1 is up to date, running ${v(deviceVersion)}.`;
     }
 }
 

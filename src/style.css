@@ -199,7 +199,7 @@ body {
 
 .sidebar-sponsor-logo {
     display: block;
-    width: 100%;
+    width: 80%;
     height: auto;
 }
 
@@ -3925,7 +3925,7 @@ details[open]>.disclosure-summary::before {
 
 .guide-hardware-row .guide-content-row {
     flex: none;
-    height: 160px;
+    height: 200px;
 }
 
 /* Browser bar — panel title strip inside diagram container */
@@ -4071,8 +4071,8 @@ details[open]>.disclosure-summary::before {
 
 .guide-hardware-copy {
     padding: 7px 14px;
-    font-size: 0.75rem;
-    line-height: 1.25;
+    font-size: .8125rem;
+    line-height: 1.55;
     color: var(--text-secondary);
 }
 
