@@ -59,60 +59,36 @@ Build Polyend Tracker Mini instruments from audio samples and export as `.pti` f
 - Re-opening a `.kb1i` file restores all sample assignments. Audio files are re-linked by name match — if the browser can't find a file, it will prompt you to re-select it.
 
 
-## Development
+## Development & Deployment
+
+### Quick Start
 
 ```bash
 npm install
 npm run dev      # → http://localhost:5174/kb1-studio/
-npm run build
-npm run preview
 ```
 
-Type-check:
+Type-check and build:
 
 ```bash
 node_modules/typescript/bin/tsc --noEmit
+npm run build    # Output to dist/
+npm run preview
 ```
 
-## Architecture
+### GitHub Pages Deployment
 
-```
-kb1-studio/
-├── src/
-│   ├── main.ts              # Entry point, instrument builder UI
-│   ├── flashTools.ts        # Flash tab UI and serial monitor
-│   ├── flasher.ts           # Firmware flashing (esptool-js wrapper)
-│   ├── sampleImport.ts      # Sample mapping and SFZ parser
-│   ├── ptiExport.ts         # PTI file generation
-│   ├── persistence.ts       # IndexedDB session storage
-│   ├── github.ts            # GitHub releases API
-│   ├── serial-monitor.ts    # Serial port reader
-│   ├── nvs-parser.ts        # NVS partition parser
-│   ├── types.ts             # TypeScript definitions
-│   └── style.css            # Styles
-├── index.html               # App shell
-├── package.json
-├── vite.config.ts
-└── tsconfig.json
-```
+- **Repository:** `https://github.com/PocketMidi/KB1-studio`
+- **Production URL:** `https://pocketmidi.github.io/KB1-studio/`
 
-## Technology Stack
+1. Set source to **GitHub Actions** in Repository Settings → Pages.
+2. Ensure `vite.config.ts` uses `base: '/kb1-studio/'`.
+3. Pushing to `main` triggers automated build and deployment to GitHub Pages.
 
-- **Vite** + **TypeScript** — build tooling
-- **@polyend/tracker-lib** — PTI file generation
-- **esptool-js** — ESP32 flashing via Web Serial API
-- **GitHub API** — firmware release fetching
-- **IndexedDB** — session persistence
-
-## Deployment
-
-Build and deploy the `dist/` folder to any static host with HTTPS. Web Serial API requires HTTPS (or localhost).
-
-```bash
-npm run build
-```
-
-The base path is `/kb1-studio/`. Update `vite.config.ts` if deploying to a different subdirectory.
+**Verification Checklist:**
+- Main app loads at `/kb1-studio/`
+- Flash tab loads firmware release manifest
+- Serial monitor connects over Web Serial (Chrome/Edge/Opera on desktop)
 
 ## Troubleshooting
 
