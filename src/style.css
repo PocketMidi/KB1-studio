@@ -3325,6 +3325,7 @@ details[open]>.disclosure-summary::before {
 
 .about-attribution a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
@@ -3623,6 +3624,7 @@ details[open]>.disclosure-summary::before {
 
 .about-modal-body a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
@@ -3710,6 +3712,7 @@ details[open]>.disclosure-summary::before {
 
 .callout a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
@@ -3835,8 +3838,16 @@ details[open]>.disclosure-summary::before {
     font-weight: 500;
 }
 
+/* Shared brand-name emphasis (e.g. "KB1 Configurator", "KB1") — colored italic, not bold */
+.brand-emphasis {
+    color: var(--accent-primary);
+    font-style: italic;
+    font-weight: 400;
+}
+
 .guide-config-promo-text a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
     word-break: break-word;
 }
@@ -3945,6 +3956,7 @@ details[open]>.disclosure-summary::before {
 
 .guide-browser-bar a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
@@ -4121,6 +4133,7 @@ details[open]>.disclosure-summary::before {
 .guide-section p a,
 .guide-section a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
@@ -4169,6 +4182,7 @@ details[open]>.disclosure-summary::before {
 
 .step-item a {
     color: var(--accent-primary);
+    font-style: italic;
     text-decoration: none;
 }
 
