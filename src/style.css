@@ -4396,6 +4396,10 @@ polygon[data-component].highlighted {
     display: none;
 }
 
+.mobile-sponsor-row {
+    display: none;
+}
+
 /* ============================================
    MOBILE USER GUIDE
    ============================================ */
@@ -4635,6 +4639,32 @@ polygon[data-component].highlighted {
     .step-item,
     .callout {
         font-size: 0.75rem;
+    }
+
+    .mobile-sponsor-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(var(--spacing-lg), 12vw, var(--spacing-xl));
+        padding: var(--spacing-lg) 20px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border);
+    }
+
+    .mobile-sponsor-link {
+        display: block;
+        width: 120px;
+        opacity: 0.75;
+    }
+
+    .mobile-sponsor-logo {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .mobile-osh-logo {
+        width: 70px;
     }
 
     .mobile-studio-note {
