@@ -4473,7 +4473,7 @@ polygon[data-component].highlighted {
     }
 
     .guide-mode-toggle {
-        width: min(250px, 100%);
+        width: min(238px, 100%);
         flex-direction: row;
         gap: 0;
         margin-left: auto;
@@ -4722,7 +4722,7 @@ polygon[data-component].highlighted {
         padding-top: 0;
         padding-right: 0;
         padding-bottom: 0;
-        padding-left: 22px;
+        padding-left: 20px;
     }
 }
 
