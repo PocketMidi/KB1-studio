@@ -203,6 +203,19 @@ body {
     height: auto;
 }
 
+.osh-logo {
+    width: 40%;
+}
+
+.osh-logo-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+}
+
 /* Instrument Name Field */
 .instrument-name-field {
     border-bottom: 1px solid var(--border);
