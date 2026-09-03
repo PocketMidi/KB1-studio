@@ -34,6 +34,7 @@
     /* UI Dimensions */
     --nav-height: 60px;
     --sidebar-width: 220px;
+    --spacing-xxs: 0.25rem;
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
     --spacing-md: 1.5rem;
@@ -4453,7 +4454,7 @@ polygon[data-component].highlighted {
         display: flex !important;
         flex-direction: row;
         align-items: center;
-        gap: var(--spacing-xs);
+        gap: var(--spacing-xxs);
         min-width: 0;
         justify-content: center;
         padding-right: 10px;
