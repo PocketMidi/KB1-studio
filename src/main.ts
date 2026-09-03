@@ -5337,6 +5337,15 @@ function initKeyboardShortcuts() {
   });
 }
 
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+window.addEventListener('pageshow', () => {
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('KB1 Studio initializing...');
 
