@@ -4716,7 +4716,18 @@ polygon[data-component].highlighted {
     }
 }
 
+@media (max-width: 768px) and (orientation: portrait) {
+    .logo-container {
+        width: 66px;
+        padding-top: 0;
+        padding-right: 0;
+        padding-bottom: 0;
+        padding-left: 22px;
+    }
+}
+
 @media (orientation: landscape) and (max-width: 1024px) and (max-height: 600px) {
+
     .sidebar-sponsor,
     .guide-config-promo {
         display: none;
