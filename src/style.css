@@ -208,21 +208,46 @@ body {
 
 .sidebar-sponsor-logo {
     display: block;
-    width: 80%;
+    width: 65%;
     height: auto;
+    margin-inline: auto;
 }
 
 .osh-logo {
-    width: 40%;
+    width: var(--osh-logo-width);
+    margin: 0;
+}
+
+.discord-logo {
+    width: var(--discord-logo-width);
+    margin: 0;
 }
 
 .osh-logo-wrap {
+    --osh-logo-width: 55px;
+    --discord-logo-width: 48px;
+    --community-logo-gap: 28px;
     width: 100%;
     display: flex;
+    align-items: center;
     justify-content: center;
+    gap: var(--community-logo-gap);
     padding-bottom: var(--spacing-lg);
     margin-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--border);
+}
+
+.community-logo-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+
+.community-logo-link:hover,
+.community-logo-link:focus-visible {
+    opacity: 1;
 }
 
 /* Instrument Name Field */
@@ -4653,10 +4678,20 @@ polygon[data-component].highlighted {
     }
 
     .mobile-sponsor-row {
+        --mobile-pcbway-width: 75px;
+        --mobile-osh-width: 45px;
+        --mobile-discord-width: 40px;
+        --mobile-pcbway-osh-gap: 15px;
+        --mobile-osh-discord-gap: 28px;
+        --mobile-pcbway-offset-x: -38px;
+        --mobile-pcbway-offset-y: 0px;
+        --mobile-osh-offset-x: 0px;
+        --mobile-osh-offset-y: 0px;
+        --mobile-discord-offset-x: 20px;
+        --mobile-discord-offset-y: 0px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: clamp(var(--spacing-lg), 12vw, var(--spacing-xl));
         padding: var(--spacing-lg) 20px;
         background: var(--bg-secondary);
         border-top: 1px solid var(--border);
@@ -4664,7 +4699,6 @@ polygon[data-component].highlighted {
 
     .mobile-sponsor-link {
         display: block;
-        width: 120px;
         opacity: 0.75;
     }
 
@@ -4674,8 +4708,21 @@ polygon[data-component].highlighted {
         height: auto;
     }
 
-    .mobile-osh-logo {
-        width: 70px;
+    .mobile-pcbway-link {
+        width: var(--mobile-pcbway-width);
+        margin-right: var(--mobile-pcbway-osh-gap);
+        transform: translate(var(--mobile-pcbway-offset-x), var(--mobile-pcbway-offset-y));
+    }
+
+    .mobile-osh-link {
+        width: var(--mobile-osh-width);
+        margin-right: var(--mobile-osh-discord-gap);
+        transform: translate(var(--mobile-osh-offset-x), var(--mobile-osh-offset-y));
+    }
+
+    .mobile-discord-link {
+        width: var(--mobile-discord-width);
+        transform: translate(var(--mobile-discord-offset-x), var(--mobile-discord-offset-y));
     }
 
     .mobile-studio-note {
