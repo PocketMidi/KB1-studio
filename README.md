@@ -6,11 +6,15 @@ User guides and desktop suite of tools for KB1 MIDI controller. Includes firmwar
 
 ## Documentation
 
-- **User Guide** tab: Hardware layout, charging, Bluetooth, and Tracker setup. Switch between **Quick Start** and **Complete Guide**; **?** buttons provide contextual help.
+- **User Guide** tab: Hardware layout, charging, Bluetooth, and Tracker setup. Switch between **Quick Start** and **Detailed Guide**; **?** buttons provide contextual help. Click anywhere in the invitation panel beneath Tracker Settings to open the Detailed Guide from the top.
 - [Configurator User Guide](https://github.com/PocketMidi/KB1-config/blob/main/docs/USER_GUIDE.md): Current app settings, presets, and performance sliders. Keep Configurator parameter descriptions there rather than duplicating them in Studio.
 - **Guide** in the Flash Tools and Instrument Builder sidebars: Tool-specific instructions.
 
 This README covers repository setup and tool overviews. The in-app guides are the detailed user-facing reference.
+
+Detailed Guide includes a matching **Quick Start** return panel. The **?** in the Configurator App header explains Tracker CC assignments versus KB1 Expression functions; browser help remains available beside **Designed for mobile**.
+
+On mobile, Detailed Guide panels—including the Tracker Setup diagram—expand from their headers. Quick Start and desktop keep the diagram visible.
 ___
 
 ## Firmware Update

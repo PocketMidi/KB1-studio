@@ -64,7 +64,7 @@
                 <!-- Simple / Advanced mode toggle -->
                 <div class="guide-mode-toggle">
                     <button class="guide-mode-btn active" data-mode="simple">Quick Start</button>
-                    <button class="guide-mode-btn" data-mode="advanced">Complete Guide</button>
+                    <button class="guide-mode-btn" data-mode="advanced">Detailed Guide</button>
                 </div>
                 <!-- Mobile-only: direct link to the KB1 Configurator app -->
                 <a class="guide-config-link" href="https://pocketmidi.github.io/KB1-config" target="_blank"
@@ -471,6 +471,9 @@
                                 <section class="guide-content-panel" id="guide-configurator-panel">
                                     <div class="guide-panel-header">
                                         <h3 class="guide-panel-title">Configurator App</h3>
+                                        <button class="help-btn" data-modal="tracker-cc"
+                                            title="How Configurator assignments control Tracker"
+                                            aria-label="Open Tracker CC assignment help">?</button>
                                     </div>
                                     <div class="guide-panel-scroll">
                                         <div class="guide-section">
@@ -517,7 +520,7 @@
                         <!-- ═══ Section 2: Tracker Setup ═══ -->
                         <section class="guide-scroll-section" id="guide-tracker">
 
-                            <section class="guide-top-panel">
+                            <section class="guide-top-panel" id="guide-tracker-diagram">
                                 <div class="guide-browser-bar">
                                     <h3 class="guide-panel-title">Tracker Setup</h3>
                                 </div>
@@ -558,6 +561,31 @@
                                         </div>
                                     </div>
                                 </section>
+                                <a class="guide-content-panel guide-explore-panel simple-only" id="guide-explore-btn"
+                                    data-guide-mode="advanced" href="#guide-setup">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Detailed Guide →</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p>Expand to see the Full <strong>Detailed Setup</strong> and
+                                                <strong>Connection Guide</strong> for <em
+                                                    class="brand-emphasis">KB1</em>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="guide-content-panel guide-explore-panel advanced-only"
+                                    id="guide-quick-start-link" data-guide-mode="simple" href="#guide-setup">
+                                    <div class="guide-panel-header">
+                                        <h3 class="guide-panel-title">Quick Start →</h3>
+                                    </div>
+                                    <div class="guide-panel-scroll">
+                                        <div class="guide-section">
+                                            <p>Collapse back to essential power, charging, and Tracker setup steps.</p>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
 
                         </section><!-- #guide-tracker -->
@@ -1160,6 +1188,20 @@
         <h4>Hanging MIDI notes?</h4>
         <p>Low battery power can interrupt MIDI communication and cause missed notes or notes to hang –
             time to recharge.</p>
+    </template>
+
+    <template id="tracker-cc-help-content">
+        <h3>How KB1 Controls Tracker</h3>
+        <p>The Configurator assigns functions to KB1 over Bluetooth. KB1 sends MIDI to Tracker Mini through the
+            TRS MIDI connection.</p>
+        <h4>Tracker assignments</h4>
+        <p>A MIDI CC (Control Change) assignment tells KB1 which Tracker parameter to control. Choose a Category
+            and Parameter, send the settings with the bouncing amber Send arrow, then use the assigned KB1 control.
+            Live sliders send their MIDI values immediately while connected.</p>
+
+        <h4>KB1 Expression assignments</h4>
+        <p><strong>KB1 Expression</strong> functions change KB1's own playing behavior, such as velocity or
+            arpeggiator pattern. They are not Tracker effect CC assignments.</p>
     </template>
 
     <template id="configurator-help-content">

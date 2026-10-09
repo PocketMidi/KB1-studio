@@ -3792,7 +3792,7 @@ details[open]>.disclosure-summary::before {
    GUIDE TAB
    ============================================ */
 
-/* Quick Start / Complete Guide mode selector */
+/* Quick Start / Detailed Guide mode selector */
 .guide-mode-toggle {
     display: flex;
     flex-direction: column;
@@ -3915,7 +3915,7 @@ details[open]>.disclosure-summary::before {
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
     padding: 0 0 var(--spacing-xl);
 }
 
@@ -3926,7 +3926,7 @@ details[open]>.disclosure-summary::before {
     align-items: stretch;
     gap: var(--spacing-sm);
     scroll-margin-top: 0;
-    padding: 0 0 var(--spacing-sm);
+    padding: 0;
 }
 
 /* Top panel — diagram container, mirrors .piano-roll-panel */
@@ -3941,20 +3941,42 @@ details[open]>.disclosure-summary::before {
     height: 46vh;
 }
 
-/* Per-section diagram height overrides */
-#guide-tracker .guide-top-panel {
-    height: 35vh;
-}
-
-#guide-tracker .guide-content-row {
-    height: 35vh;
-}
-
-/* Content row fills remaining 25% */
+/* Content row fills the space beside the diagram. */
 .guide-scroll-section .guide-content-row {
     flex: 1;
     height: 46vh;
     min-height: 0;
+}
+
+/* Per-section diagram height overrides */
+#guide-tracker .guide-top-panel {
+    height: auto;
+    min-height: 35vh;
+}
+
+#guide-tracker .guide-content-row {
+    height: auto;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+#guide-tracker-settings {
+    flex: none;
+}
+
+.guide-explore-panel {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.guide-explore-panel:hover {
+    border-color: var(--accent-bronze);
+}
+
+@media (min-width: 769px) {
+    #guide-tracker .guide-diagram-pane svg {
+        max-height: calc(35vh - 32px - 2 * var(--spacing-lg));
+    }
 }
 
 /* ============================================
@@ -3968,6 +3990,10 @@ details[open]>.disclosure-summary::before {
 
 .guide-scroll-page.advanced-mode .advanced-only {
     display: revert !important;
+}
+
+.guide-scroll-page.advanced-mode .guide-explore-panel {
+    display: flex !important;
 }
 
 .guide-scroll-page.advanced-mode .simple-only {
@@ -4574,6 +4600,7 @@ polygon[data-component].highlighted {
     #guide-tracker .guide-top-panel {
         width: 100%;
         height: auto;
+        min-height: 0;
         flex: none;
         overflow: visible;
         border: none;
@@ -4589,6 +4616,12 @@ polygon[data-component].highlighted {
 
     .guide-content-panel {
         background: var(--bg-secondary);
+    }
+
+    .guide-explore-panel {
+        flex: none;
+        background: var(--bg-panel);
+        cursor: pointer;
     }
 
     .guide-advanced-row .guide-content-panel:nth-child(even) {
@@ -4632,18 +4665,18 @@ polygon[data-component].highlighted {
         padding: var(--spacing-sm) 20px var(--spacing-lg);
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion {
+    .guide-scroll-page.advanced-mode .mobile-accordion {
         overflow: hidden;
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion .guide-panel-header {
+    .guide-scroll-page.advanced-mode .mobile-accordion :is(.guide-panel-header, .guide-browser-bar) {
         align-items: center;
         padding: 14px 20px;
         border-bottom: 1px solid var(--border);
         cursor: pointer;
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion .guide-panel-header::after {
+    .guide-scroll-page.advanced-mode .mobile-accordion :is(.guide-panel-header, .guide-browser-bar)::after {
         content: '+';
         margin-left: auto;
         color: var(--text-secondary);
@@ -4652,16 +4685,16 @@ polygon[data-component].highlighted {
         line-height: 1;
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion.is-open .guide-panel-header::after {
+    .guide-scroll-page.advanced-mode .mobile-accordion.is-open :is(.guide-panel-header, .guide-browser-bar)::after {
         content: '−';
         color: var(--accent-bronze);
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion:not(.is-open) .guide-panel-scroll {
+    .guide-scroll-page.advanced-mode .mobile-accordion:not(.is-open) :is(.guide-panel-scroll, .guide-diagram-pane) {
         display: none;
     }
 
-    .guide-scroll-page.advanced-mode .guide-content-panel.mobile-accordion.is-open .guide-panel-scroll {
+    .guide-scroll-page.advanced-mode .mobile-accordion.is-open :is(.guide-panel-scroll, .guide-diagram-pane) {
         display: block;
     }
 

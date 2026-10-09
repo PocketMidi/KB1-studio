@@ -4711,6 +4711,17 @@ function initGuide(): void {
     });
   });
 
+  document.querySelectorAll<HTMLAnchorElement>('.guide-explore-panel[data-guide-mode]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      const mode = link.dataset.guideMode;
+      const modeButton = document.querySelector<HTMLButtonElement>(`.guide-mode-btn[data-mode="${mode}"]`);
+      modeButton?.click();
+      scrollPage?.scrollTo({ top: 0 });
+      modeButton?.focus({ preventScroll: true });
+    });
+  });
+
   mobileGuideMedia.addEventListener('change', () => {
     if (mobileGuideMedia.matches) {
       document.querySelector<HTMLElement>('.nav-tab[data-tab="guide"]')?.click();
@@ -4985,9 +4996,11 @@ function setDiagramHighlight(diagram: Element, components: string[]): void {
 /** Preview highlights on hover and keep them active when a panel is selected. */
 function initDiagramHighlights(): void {
   const guidePanels = Array.from(
-    document.querySelectorAll<HTMLElement>('.guide-top-panel, .guide-content-panel'),
+    document.querySelectorAll<HTMLElement>('.guide-top-panel, .guide-content-panel:not(.guide-explore-panel)'),
   );
-  const contentPanels = Array.from(document.querySelectorAll<HTMLElement>('.guide-content-panel'));
+  const accordionPanels = Array.from(document.querySelectorAll<HTMLElement>(
+    '.guide-content-panel:not(.guide-explore-panel), #guide-tracker-diagram',
+  ));
   const scrollPage = document.getElementById('guide-scroll-page');
   const defaultPanel = document.getElementById('guide-charging-panel');
   let selectedPanel: HTMLElement | null = null;
@@ -5015,9 +5028,11 @@ function initDiagramHighlights(): void {
     });
 
     const mobileAdvanced = isMobileAdvanced();
-    contentPanels.forEach(panel => {
-      const header = panel.querySelector<HTMLElement>('.guide-panel-header');
-      const body = panel.querySelector<HTMLElement>('.guide-panel-scroll');
+    accordionPanels.forEach(panel => {
+      const header = accordionPanels.includes(panel)
+        ? panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')
+        : null;
+      const body = panel.querySelector<HTMLElement>('.guide-panel-scroll, .guide-diagram-pane');
       const wasAccordion = panel.classList.contains('mobile-accordion');
       panel.classList.toggle('mobile-accordion', mobileAdvanced);
 
@@ -5081,9 +5096,9 @@ function initDiagramHighlights(): void {
     if (!isMobileAdvanced()) return;
     const opening = !panel.classList.contains('is-open');
 
-    contentPanels.forEach(candidate => {
+    accordionPanels.forEach(candidate => {
       candidate.classList.remove('is-open');
-      candidate.querySelector<HTMLElement>('.guide-panel-header')
+      candidate.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')
         ?.setAttribute('aria-expanded', 'false');
     });
 
@@ -5093,7 +5108,7 @@ function initDiagramHighlights(): void {
     }
 
     panel.classList.add('is-open');
-    panel.querySelector<HTMLElement>('.guide-panel-header')?.setAttribute('aria-expanded', 'true');
+    panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')?.setAttribute('aria-expanded', 'true');
     selectPanel(panel);
   };
 
@@ -5122,7 +5137,7 @@ function initDiagramHighlights(): void {
       selectPanel(panel);
     });
 
-    const header = panel.querySelector<HTMLElement>('.guide-panel-header');
+    const header = panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar');
     header?.addEventListener('click', event => {
       if (!isMobileAdvanced() || (event.target as Element).closest('.help-btn')) return;
       toggleMobileAccordion(panel);
