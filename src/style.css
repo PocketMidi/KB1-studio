@@ -3973,6 +3973,10 @@ details[open]>.disclosure-summary::before {
     border-color: var(--accent-bronze);
 }
 
+.guide-collapse-all {
+    display: none;
+}
+
 @media (min-width: 769px) {
     #guide-tracker .guide-diagram-pane svg {
         max-height: calc(35vh - 32px - 2 * var(--spacing-lg));
@@ -4454,6 +4458,32 @@ polygon[data-component].highlighted {
 
 .mobile-studio-note {
     display: none;
+}
+
+.guide-collapse-all:not([hidden]) {
+    display: block;
+    flex: none;
+    width: 100%;
+    min-height: 44px;
+    padding: var(--spacing-sm) 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.guide-collapse-all:hover {
+    color: var(--accent-bronze);
+}
+
+.guide-collapse-all:focus-visible {
+    outline: 2px solid var(--accent-bronze);
+    outline-offset: -2px;
 }
 
 .mobile-sponsor-row {

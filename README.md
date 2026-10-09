@@ -14,7 +14,9 @@ This README covers repository setup and tool overviews. The in-app guides are th
 
 Detailed Guide includes a matching **Quick Start** return panel. The **?** in the Configurator App header explains Tracker CC assignments versus KB1 Expression functions; browser help remains available beside **Designed for mobile**.
 
-On mobile, Detailed Guide panels—including the Tracker Setup diagram—expand from their headers. Quick Start and desktop keep the diagram visible.
+On mobile, Detailed Guide panels—including the Tracker Setup diagram—expand independently from their headers. Multiple panels can stay open; tap a header again to close only that panel. Quick Start and desktop keep the diagram visible.
+
+When two or more mobile Detailed Guide panels are open, **Collapse all** appears above the sponsor logos. It closes all expandable panels without leaving Detailed Guide.
 ___
 
 ## Firmware Update

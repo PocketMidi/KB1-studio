@@ -5003,10 +5003,18 @@ function initDiagramHighlights(): void {
   ));
   const scrollPage = document.getElementById('guide-scroll-page');
   const defaultPanel = document.getElementById('guide-charging-panel');
+  const collapseAllButton = document.getElementById('guide-collapse-all');
   let selectedPanel: HTMLElement | null = null;
 
   const isMobileAdvanced = (): boolean =>
     mobileGuideMedia.matches && (scrollPage?.classList.contains('advanced-mode') ?? false);
+
+  const updateCollapseAll = (): void => {
+    if (collapseAllButton) {
+      collapseAllButton.hidden = !isMobileAdvanced()
+        || accordionPanels.filter(panel => panel.classList.contains('is-open')).length < 2;
+    }
+  };
 
   const clearPanelHighlights = (): void => {
     selectedPanel = null;
@@ -5054,6 +5062,8 @@ function initDiagramHighlights(): void {
       }
     });
 
+    updateCollapseAll();
+
     if (mobileGuideMedia.matches && !mobileAdvanced) {
       clearPanelHighlights();
     } else if (!selectedPanel && defaultPanel) {
@@ -5096,21 +5106,31 @@ function initDiagramHighlights(): void {
     if (!isMobileAdvanced()) return;
     const opening = !panel.classList.contains('is-open');
 
-    accordionPanels.forEach(candidate => {
-      candidate.classList.remove('is-open');
-      candidate.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')
-        ?.setAttribute('aria-expanded', 'false');
-    });
+    panel.classList.toggle('is-open', opening);
+    panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')
+      ?.setAttribute('aria-expanded', String(opening));
+    updateCollapseAll();
 
     if (!opening) {
-      clearPanelHighlights();
+      if (selectedPanel === panel) clearPanelHighlights();
       return;
     }
 
-    panel.classList.add('is-open');
-    panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')?.setAttribute('aria-expanded', 'true');
     selectPanel(panel);
   };
+
+  collapseAllButton?.addEventListener('click', () => {
+    if (!isMobileAdvanced()) return;
+    accordionPanels.forEach(panel => {
+      panel.classList.remove('is-open');
+      panel.querySelector<HTMLElement>('.guide-panel-header, .guide-browser-bar')
+        ?.setAttribute('aria-expanded', 'false');
+    });
+    clearPanelHighlights();
+    updateCollapseAll();
+    document.querySelector<HTMLButtonElement>('.guide-mode-btn[data-mode="advanced"]')
+      ?.focus({ preventScroll: true });
+  });
 
   guidePanels.forEach(panel => {
     panel.setAttribute('aria-current', 'false');
