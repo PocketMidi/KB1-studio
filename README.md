@@ -1,18 +1,31 @@
 # KB1 Studio
 
 User guides and desktop suite of tools for KB1 MIDI controller. Includes firmware management and an instrument builder for the Polyend Tracker Mini.
+
+**Live app:** [KB1 Studio](https://pocketmidi.github.io/KB1-studio/)
+
+## Documentation
+
+- **User Guide** tab: Hardware layout, charging, Bluetooth, and Tracker setup. Switch between **Quick Start** and **Complete Guide**; **?** buttons provide contextual help.
+- [Configurator User Guide](https://github.com/PocketMidi/KB1-config/blob/main/docs/USER_GUIDE.md): Current app settings, presets, and performance sliders. Keep Configurator parameter descriptions there rather than duplicating them in Studio.
+- **Guide** in the Flash Tools and Instrument Builder sidebars: Tool-specific instructions.
+
+This README covers repository setup and tool overviews. The in-app guides are the detailed user-facing reference.
 ___
 
 ## Firmware Update
 
 Flash KB1 firmware via USB. Battery calibration data is automatically preserved across updates.
 
+**Exception:** **Clear device data on update** skips NVS backup/restore and erases saved settings, presets, and calibration.
+
 **Requirements:** Chrome, Edge, or Opera on desktop (Windows, macOS, Linux). Web Serial API required. Mobile browsers are not supported.
 
 **Usage:**
 
 - Connect KB1 via USB-C.
-- Select a firmware release from the list, or drag and drop a local `.bin` file.
+- If KB1 is connected to Tracker Mini, power down the Tracker before flashing.
+- The latest release is pre-selected. Use **Choose a different version** for an older release, or load a local complete `.bin` image.
 - Grant USB permission when the browser prompts.
 - Wait for the flash to complete. The device restarts automatically.
 
@@ -54,24 +67,26 @@ Build Polyend Tracker Mini instruments from audio samples and export as `.pti` f
 
 - Save your project as .kb1i while working, then export .pti when ready
 
-- The session is also persisted in browser storage so work-in-progress survives a page reload.
+- The current app uses file-first storage: **Save** or **Save As…** to preserve your work. Unsaved sessions are not automatically restored after a page reload.
 
-- Re-opening a `.kb1i` file restores all sample assignments. Audio files are re-linked by name match — if the browser can't find a file, it will prompt you to re-select it.
+- Re-opening a `.kb1i` file restores assignments and editing settings. Projects reference the audio files rather than embedding them; keep the source samples and re-select them when prompted.
 
 
 ## Development & Deployment
 
 ### Quick Start
 
+Use a Node.js version supported by Vite 7 (20.19+ or 22.12+).
+
 ```bash
 npm install
-npm run dev      # → http://localhost:5174/kb1-studio/
+npm run dev      # → http://localhost:5174/KB1-studio/
 ```
 
 Type-check and build:
 
 ```bash
-node_modules/typescript/bin/tsc --noEmit
+npm run typecheck
 npm run build    # Output to dist/
 npm run preview
 ```
@@ -82,11 +97,11 @@ npm run preview
 - **Production URL:** `https://pocketmidi.github.io/KB1-studio/`
 
 1. Set source to **GitHub Actions** in Repository Settings → Pages.
-2. Ensure `vite.config.ts` uses `base: '/kb1-studio/'`.
+2. Ensure `vite.config.ts` uses `base: '/KB1-studio/'` (case-sensitive).
 3. Pushing to `main` triggers automated build and deployment to GitHub Pages.
 
 **Verification Checklist:**
-- Main app loads at `/kb1-studio/`
+- Main app loads at `/KB1-studio/`
 - Flash tab loads firmware release manifest
 - Serial monitor connects over Web Serial (Chrome/Edge/Opera on desktop)
 
@@ -104,11 +119,11 @@ npm run preview
 
 ## License
 
-MIT License — see LICENSE file
+MIT License — see [LICENSE](LICENSE).
 
 ## Links
 
 - [KB1 Website](https://kb1.pocketmidi.com)
 - [KB1 Config App](https://github.com/PocketMidi/KB1-config)
-- [KB1 Firmware](https://github.com/PocketMidi/KB1-firmware)
+- [KB1 Firmware](https://github.com/PocketMidi/KB1/tree/main/firmware)
 - [Pocket MIDI](https://pocketmidi.com)
